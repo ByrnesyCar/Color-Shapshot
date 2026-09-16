@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot — 5E-8.5 Hybrid Fusion Calibration</title>
+<title>Color Snapshot — 5E-8.5a Brow Override + Hair History</title>
 <style>
 :root{--cream:#f5f0e7;--paper:#fbf8f2;--red:#db5335;--ink:#302d2a;--muted:#746e68;--line:#d8d0c5;--green:#286b49;--amber:#996317;--blue:#2867a8;--purple:#7650b5}
 *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,sans-serif}main{max-width:1240px;margin:auto;padding:28px 22px 60px}
@@ -15,7 +15,7 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 </style></head><body><main>
 <header><div class="logo">ŌRA</div><div class="tag">ORIGINAL. ROOTED. AUTHENTIC.</div>
 <h1>Color Snapshot — Integrated Calibration Test Bench</h1>
-<div class="sub">Step 5E-8.5: photo measures skin depth + validated brows; natural hair and eye attributes are supplied explicitly; guided questions drive temperature, chroma, and contrast.</div></header>
+<div class="sub">Step 5E-8.5a: skin remains photo-measured; brows can use a validated photo sample or host override; natural/pre-gray hair history and eye attributes are supplied explicitly.</div></header>
 
 <div class="grid">
 <section>
@@ -23,9 +23,16 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 <label>Tester ID</label><input id="tester" value="Tester 01">
 <label>Choose test photograph</label><input id="file" type="file" accept="image/jpeg,image/png,image/webp">
 <div class="photo" id="photoBox"><span id="placeholder">Choose a straight-on portrait</span><img id="img"><canvas id="overlay"></canvas></div>
-<label>Natural hair depth</label>
+<label>Natural hair history</label>
+<select id="hairHistory">
+<option value="natural">Current hair is close to natural color</option>
+<option value="dyed">Currently dyed / highlighted — use natural color below</option>
+<option value="gray">Now gray / silver / white — use pre-gray natural color below</option>
+<option value="unknown">Natural / pre-gray color not sure</option>
+</select>
+<label>Natural / pre-gray hair depth</label>
 <select id="hairDepth">
-<option value="-2.5">Very light blonde</option><option value="-1.7">Blonde</option><option value="-0.8">Dark blonde / light brown</option><option value="0">Medium brown</option><option value="1.2">Dark brown</option><option value="2">Very dark brown / black</option><option value="-1.0">Gray / silver / white</option><option value="0.2">Red / auburn</option>
+<option value="-2.5">Very light blonde</option><option value="-1.7">Blonde</option><option value="-0.8">Dark blonde / light brown</option><option value="0">Medium brown</option><option value="1.2">Dark brown</option><option value="2">Very dark brown / black</option><option value="0.2">Red / auburn</option><option value="unknown">Not sure</option>
 </select>
 <label>Natural hair undertone</label>
 <select id="hairTone"><option value="0">Neutral / not sure</option><option value="1">Warm / golden / copper</option><option value="-1">Cool / ashy</option></select>
@@ -35,6 +42,14 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 </select>
 <label>Eye depth / clarity</label>
 <select id="eyeDepth"><option value="0">Medium / not sure</option><option value="-1">Light / soft</option><option value="1">Deep / clear</option></select>
+<label>Brow depth</label>
+<select id="browOverride">
+<option value="photo">Use photo measurement when credible</option>
+<option value="-1.2">Manual — light</option>
+<option value="0">Manual — medium</option>
+<option value="1.2">Manual — dark</option>
+<option value="unknown">Not sure / exclude brows</option>
+</select>
 <label>Makeup level</label><select id="makeup"><option value="1">None / minimal</option><option value=".8">Some</option><option value=".55">Full</option></select>
 <button class="wide" id="measure">ANALYZE PHOTO + MEASURE ✦</button>
 <div class="status" id="measureStatus">Select a photograph. Seasonal scoring stays locked until measurement succeeds.</div>
@@ -95,7 +110,7 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 <script type="module">
 import {FaceLandmarker,FilesetResolver} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 const $=id=>document.getElementById(id), clamp=n=>Math.max(-3,Math.min(3,n));
-let landmarker=null, photo=null, measurement=null, current=null, records=JSON.parse(localStorage.getItem("cs5e85")||"[]");
+let landmarker=null, photo=null, measurement=null, current=null, records=JSON.parse(localStorage.getItem("cs5e85a")||"[]");
 
 async function init(){
  try{
@@ -176,7 +191,8 @@ $("measure").onclick=async()=>{
   let quality=(faceRatio>=.22&&skinL>=28&&skinL<=88)?"PASS":"RETAKE";
 
   // Convert explicit natural attributes to analytic depth cues.
-  let hairDepth=Number($("hairDepth").value);
+  let hairRaw=$("hairDepth").value;
+  let hairDepth=hairRaw==="unknown"?null:Number(hairRaw);
   let hairTone=Number($("hairTone").value);
   let eyeKey=$("eyeColor").value, eyeAdj=Number($("eyeDepth").value);
   let eyeBase={blue:-1.4,gray:-1.2,green:-.8,hazel:0,brown:.7,darkbrown:1.5}[eyeKey];
@@ -187,21 +203,33 @@ $("measure").onclick=async()=>{
 
   // Brow depth is used only when its sampled value is credibly darker than skin.
   // Otherwise exclude it rather than pretending skin pixels are brow.
-  let browDepth=null;
-  if(brow.valid && (skin.lab[0]-brow.lab[0])>=5){
-    browDepth=clamp((62-brow.lab[0])/10);
+  let browDepth=null, browSource="EXCLUDED";
+  let browChoice=$("browOverride").value;
+  if(browChoice==="photo"){
+    if(brow.valid && (skin.lab[0]-brow.lab[0])>=5){
+      browDepth=clamp((62-brow.lab[0])/10);
+      browSource="PHOTO";
+    }else{
+      brow.valid=false;
+      brow.reason="not sufficiently distinct from skin — excluded; manual override available";
+    }
+  }else if(browChoice!=="unknown"){
+    browDepth=Number(browChoice);
+    browSource="MANUAL";
+    brow.valid=true;
+    brow.reason="host override";
   }else{
     brow.valid=false;
-    brow.reason="not sufficiently distinct from skin — excluded";
+    brow.reason="host chose not sure — excluded";
   }
 
   // VALUE: natural overall coloring from skin + stated hair + stated eyes (+ credible brow).
-  let depthParts=[skinDepth,hairDepth,eyeDepth];
+  let depthParts=[skinDepth,eyeDepth]; if(hairDepth!==null)depthParts.push(hairDepth);
   if(browDepth!==null)depthParts.push(browDepth);
   let value=clamp(depthParts.reduce((a,z)=>a+z,0)/depthParts.length);
 
   // CONTRAST: spread between lightest/deepest natural features, normalized to -3..+3.
-  let naturalDepths=[skinDepth,hairDepth,eyeDepth];
+  let naturalDepths=[skinDepth,eyeDepth]; if(hairDepth!==null)naturalDepths.push(hairDepth);
   if(browDepth!==null)naturalDepths.push(browDepth);
   let range=Math.max(...naturalDepths)-Math.min(...naturalDepths);
   let contrast=clamp((range-2.2)*1.15);
@@ -213,17 +241,20 @@ $("measure").onclick=async()=>{
 
   let weightedL=skin.lab[0], separation=range;
   measurement={
-    value,contrast,chroma,quality,skinDepth,hairDepth,hairTone,eyeDepth,
+    value,contrast,chroma,quality,skinDepth,hairDepth,hairTone,eyeDepth,browDepth,browSource,
     samples:{skin,brow},weightedL,separation,weightedC
   };
+  let historyText=$("hairHistory").options[$("hairHistory").selectedIndex].text;
   let hairText=$("hairDepth").options[$("hairDepth").selectedIndex].text+" · "+$("hairTone").options[$("hairTone").selectedIndex].text;
   let eyeText=$("eyeColor").options[$("eyeColor").selectedIndex].text+" · "+$("eyeDepth").options[$("eyeDepth").selectedIndex].text;
-  $("samples").innerHTML=swatch(skin,"Skin")+swatch(brow,"Brows")
-    +`<div class="sample"><b>Hair INPUT</b><br><span class="tiny">${hairText}<br>depth ${hairDepth.toFixed(2)}</span></div>`
+  let browText=browSource==="PHOTO"?"Validated photo":browSource==="MANUAL"?$("browOverride").options[$("browOverride").selectedIndex].text:"Excluded / not sure";
+  $("samples").innerHTML=swatch(skin,"Skin")
+    +`<div class="sample"><b>Brows ${browSource}</b><br><span class="tiny">${browText}${browDepth!==null?`<br>depth ${browDepth.toFixed(2)}`:""}</span></div>`
+    +`<div class="sample"><b>Hair INPUT</b><br><span class="tiny">${historyText}<br>${hairText}<br>depth ${hairDepth===null?"not used":hairDepth.toFixed(2)}</span></div>`
     +`<div class="sample"><b>Eyes INPUT</b><br><span class="tiny">${eyeText}<br>depth ${eyeDepth.toFixed(2)}</span></div>`;
   $("sampleDiag").innerHTML=brow.valid
-    ? `<span class="pass">✓ HYBRID INPUT READY.</span> Skin + brows measured; natural hair + eyes supplied explicitly.`
-    : `<span class="warn">⚠ BROWS EXCLUDED.</span> Skin measured; natural hair + eyes supplied explicitly. Value/contrast were renormalized without brows.`;
+    ? `<span class="pass">✓ HYBRID INPUT READY.</span> Skin measured; brows ${browSource.toLowerCase()}; natural/pre-gray hair + eyes supplied explicitly.`
+    : `<span class="warn">⚠ BROWS EXCLUDED.</span> Skin measured; natural/pre-gray hair + eyes supplied explicitly. Value/contrast were renormalized without brows.`;
   $("mv").textContent=(value>=0?"+":"")+value.toFixed(2);$("mc").textContent=(chroma>=0?"+":"")+chroma.toFixed(2);$("mx").textContent=(contrast>=0?"+":"")+contrast.toFixed(2);
   $("quality").innerHTML=quality==="PASS"?`<span class="pass">✓ PHOTO QUALITY PASS.</span> Face detected; exposure and face size are usable.`:`<span class="warn">⚠ RETAKE.</span> Exposure or face size is outside the calibration gate. Seasonal scoring remains locked.`;
   if(quality==="PASS"){$("score").disabled=false;$("questionCard").classList.remove("locked");$("measureStatus").innerHTML=`<span class="pass">✓ HYBRID MEASUREMENT COMPLETE.</span> Skin L*: ${weightedL.toFixed(1)} · natural-depth range: ${separation.toFixed(2)} · skin C*: ${weightedC.toFixed(1)}`}
@@ -267,8 +298,11 @@ $("score").onclick=()=>{
      skin:measurement.samples.skin.valid!==false,
      brow:measurement.samples.brow.valid!==false
    },
+   hairHistorySetting:$("hairHistory").options[$("hairHistory").selectedIndex].text,
    hairSetting:$("hairDepth").options[$("hairDepth").selectedIndex].text,
    hairToneSetting:$("hairTone").options[$("hairTone").selectedIndex].text,
+   browSetting:$("browOverride").options[$("browOverride").selectedIndex].text,
+   browSource:measurement.browSource,
    eyeSetting:$("eyeColor").options[$("eyeColor").selectedIndex].text,
    eyeDepthSetting:$("eyeDepth").options[$("eyeDepth").selectedIndex].text,
    makeupSetting:$("makeup").options[$("makeup").selectedIndex].text
@@ -296,8 +330,11 @@ $("save").onclick=()=>{if(!current)return;records.push({
  photo:current.photo,
  questions:current.questions,
  validation:current.validation,
+ hairHistorySetting:current.hairHistorySetting,
  hairSetting:current.hairSetting,
  hairToneSetting:current.hairToneSetting,
+ browSetting:current.browSetting,
+ browSource:current.browSource,
  eyeSetting:current.eyeSetting,
  eyeDepthSetting:current.eyeDepthSetting,
  makeupSetting:current.makeupSetting,
@@ -311,11 +348,11 @@ $("save").onclick=()=>{if(!current)return;records.push({
  temp:current.temp,
  expected:$("expected").value,
  reaction:$("reaction").value
-});localStorage.setItem("cs5e85",JSON.stringify(records));render();$("tester").value="Tester "+String(records.length+1).padStart(2,"0");$("save").disabled=true}
-$("clear").onclick=()=>{if(confirm("Clear this browser's 5E-8.5 calibration log?")){records=[];localStorage.removeItem("cs5e85");render()}}
+});localStorage.setItem("cs5e85a",JSON.stringify(records));render();$("tester").value="Tester "+String(records.length+1).padStart(2,"0");$("save").disabled=true}
+$("clear").onclick=()=>{if(confirm("Clear this browser's 5E-8.5a calibration log?")){records=[];localStorage.removeItem("cs5e85a");render()}}
 $("csv").onclick=()=>{
  let h=[
- "Tester","Quality","NaturalHairDepth","HairUndertone","EyeColor","EyeDepthClarity","MakeupSetting",
+ "Tester","Quality","HairHistory","NaturalPreGrayHairDepth","HairUndertone","EyeColor","EyeDepthClarity","BrowSetting","BrowSource","MakeupSetting",
  "SkinUsed","BrowUsed",
  "PhotoValue","PhotoChromaAxis_UNUSED","PhotoContrast","SkinL","SkinC_DIAGNOSTIC_ONLY","FeatureSeparation",
  "Q1_Metal","Q2_ColorFamily","Q3_ChromaPreference","Q4_Contrast",
@@ -324,7 +361,7 @@ $("csv").onclick=()=>{
  "TemperatureFlag","Expected","Reaction"
  ];
  let rows=records.map(r=>[
- r.tester,r.quality,r.hairSetting,r.hairToneSetting,r.eyeSetting,r.eyeDepthSetting,r.makeupSetting,
+ r.tester,r.quality,r.hairHistorySetting,r.hairSetting,r.hairToneSetting,r.eyeSetting,r.eyeDepthSetting,r.browSetting,r.browSource,r.makeupSetting,
  r.validation?.skin,r.validation?.brow,
  r.photo?.value,r.photo?.chroma,r.photo?.contrast,r.photo?.weightedL,r.photo?.weightedC,r.photo?.separation,
  r.questions?.q1,r.questions?.q2,r.questions?.q3,r.questions?.q4,
@@ -335,7 +372,7 @@ $("csv").onclick=()=>{
  csv=[h,...rows].map(a=>a.map(esc).join(",")).join("\n"),
  a=document.createElement("a");
  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
- a.download="color_snapshot_5E8_5_hybrid_fusion_calibration.csv";
+ a.download="color_snapshot_5E8_5a_brow_hair_history_calibration.csv";
  a.click()
 }
 render();
