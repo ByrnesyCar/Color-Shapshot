@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot by ŌRA Salon</title>
+<title>Color Snapshot by ŌRA Salon · 5F-2</title>
 <style>
 :root {
   --ora-red:#ef1016;
@@ -40,6 +40,17 @@ input:focus{border-bottom-color:var(--ora-red)}
 .progress span.on{background:var(--ora-red)}
 .summary{border-top:1px solid var(--line);margin-top:24px;padding-top:18px}
 .summary strong{font-family:Georgia,"Times New Roman",serif;font-size:26px;font-weight:400}
+
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 4px}
+.choice{border:1px solid var(--line);background:transparent;color:var(--ink);padding:13px 12px;margin:0;text-align:left;text-transform:none;letter-spacing:0;font-size:14px;font-weight:500}
+.choice.selected{border-color:var(--ora-red);box-shadow:inset 0 0 0 1px var(--ora-red);background:#fff7f2}
+.field-note{font-size:12px;line-height:1.45;color:var(--muted);margin:7px 0 14px}
+select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparent;padding:12px 2px;font-size:16px;outline:none}
+.photo-box{border:1px dashed #bdb4a8;padding:18px;margin:16px 0;text-align:center;background:#fff}
+.photo-box input{border:0;font-size:14px}
+#photoPreview{display:none;width:100%;max-height:290px;object-fit:contain;margin-top:14px;background:#f4efe6}
+.checks{margin:15px 0;padding:14px 16px;background:#f6f0e8;font-size:13px;line-height:1.65;color:#4f4a45}
+.inline-status{font-size:12px;color:var(--ora-red);font-weight:700;margin-top:10px}
 @media(max-width:820px){
  .shell{grid-template-columns:1fr}
  .brand-panel{min-height:46vh;border-right:0;border-bottom:1px solid var(--line);padding:34px 28px}
@@ -92,8 +103,100 @@ input:focus{border-bottom-color:var(--ora-red)}
     <h2>Nice to meet you, <span id="guestName">there</span>.</h2>
     <p>Next we’ll add your photo and a few details about your natural coloring. Rebecca controls the experience, so you can simply answer what you know.</p>
     <div class="summary"><strong id="sessionId"></strong><div class="small">Temporary session ID · generated automatically</div></div>
-    <button disabled style="opacity:.45;cursor:not-allowed">Photo step comes in 5F-2</button>
+    <button onclick="go('photo',3)">Add photo + natural coloring</button>
     <button class="secondary" onclick="go('details',2)">Back</button>
+  </section>
+
+  <section class="step" id="photo">
+    <div class="kicker">Photo + natural coloring · 2 of 4</div>
+    <h2>Let’s look at your natural coloring.</h2>
+    <p>Your photo gives Color Snapshot a few useful measurements. We’ll pair those with what you know about your natural hair, eyes and brows.</p>
+
+    <label for="photoInput">Guest photo</label>
+    <div class="photo-box">
+      <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" onchange="previewPhoto(event)">
+      <img id="photoPreview" alt="Guest photo preview">
+      <div id="photoStatus" class="inline-status"></div>
+    </div>
+    <div class="checks"><strong>For the clearest snapshot:</strong><br>
+      Face the camera straight on · use even, neutral light · no filters · glasses off if comfortable · keep hair away from the face when possible.
+    </div>
+
+    <label for="hairHistory">What best describes your hair today?</label>
+    <select id="hairHistory">
+      <option value="">Choose one</option>
+      <option>Current hair is close to my natural color</option>
+      <option>Currently dyed / highlighted — use my natural color below</option>
+      <option>Now gray / silver / white — use my pre-gray natural color below</option>
+      <option>Natural / pre-gray color not sure</option>
+    </select>
+
+    <label for="hairDepth">Natural / pre-gray hair depth</label>
+    <select id="hairDepth">
+      <option value="">Choose one</option>
+      <option value="-2.5">Very light blonde</option>
+      <option value="-1.7">Blonde</option>
+      <option value="-0.8">Dark blonde / light brown</option>
+      <option value="0">Medium brown</option>
+      <option value="1.2">Dark brown</option>
+      <option value="2">Very dark brown / black</option>
+      <option value="0.2">Red / auburn</option>
+      <option value="unknown">Not sure</option>
+    </select>
+    <div class="field-note">If hair is colored or gray now, choose the natural color you remember before coloring or graying. “Not sure” is completely okay.</div>
+
+    <label for="hairTemp">Natural hair undertone</label>
+    <select id="hairTemp">
+      <option value="">Choose one</option>
+      <option value="1">Warm / golden / copper</option>
+      <option value="-1">Cool / ashy</option>
+      <option value="0">Neutral / not sure</option>
+    </select>
+
+    <label for="eyeColor">Natural eye color</label>
+    <select id="eyeColor">
+      <option value="">Choose one</option>
+      <option>Brown</option><option>Very dark brown</option><option>Hazel</option>
+      <option>Green</option><option>Blue</option><option>Gray</option>
+    </select>
+
+    <label for="eyeDepth">How do the eyes read overall?</label>
+    <select id="eyeDepth">
+      <option value="">Choose one</option>
+      <option value="-1">Light / soft</option>
+      <option value="0">Medium / not sure</option>
+      <option value="1">Deep / clear</option>
+    </select>
+
+    <label for="browOverride">Brow depth</label>
+    <select id="browOverride">
+      <option value="photo">Use photo measurement when credible</option>
+      <option value="-1.2">Manual — light</option>
+      <option value="0">Manual — medium</option>
+      <option value="1.2">Manual — dark</option>
+      <option value="exclude">Not sure / exclude brows</option>
+    </select>
+    <div class="field-note">Hosted control: leave this on photo unless the brow sample is clearly unreliable.</div>
+
+    <label for="makeup">Makeup today</label>
+    <select id="makeup">
+      <option value="">Choose one</option>
+      <option>None / minimal</option>
+      <option>Some</option>
+      <option>Full</option>
+    </select>
+
+    <button onclick="saveNaturalColoring()">Continue to color questions</button>
+    <button class="secondary" onclick="go('ready',2)">Back</button>
+    <div class="small">The selected image is previewed locally in this prototype. It is not added to the Color Snapshot guest record.</div>
+  </section>
+
+  <section class="step" id="questionsPreview">
+    <div class="kicker">Next · 3 of 4</div>
+    <h2>Now let’s see which colors feel most at home on you.</h2>
+    <p>Next come four quick visual questions about metals, color temperature, softness versus clarity, and your natural contrast.</p>
+    <div class="summary"><strong>Photo + natural coloring complete.</strong><div class="small">5F-3 will add the four guided color questions here.</div></div>
+    <button class="secondary" onclick="go('photo',3)">Back</button>
   </section>
 </div>
 </section>
@@ -122,6 +225,37 @@ function saveGuest(){
  document.getElementById('sessionId').textContent=guest.sessionId;
  go('ready',2);
 }
+
+function previewPhoto(e){
+ const f=e.target.files && e.target.files[0];
+ if(!f)return;
+ const img=document.getElementById('photoPreview');
+ img.src=URL.createObjectURL(f); img.style.display='block';
+ document.getElementById('photoStatus').textContent='Photo selected · ready for analysis in the connected build';
+ guest.photoOriginalName=f.name;
+ guest.photoTempName=guest.sessionId ? guest.sessionId+'.jpg' : 'Color-Snapshot-session.jpg';
+}
+function saveNaturalColoring(){
+ const required=['photoInput','hairHistory','hairDepth','hairTemp','eyeColor','eyeDepth','makeup'];
+ for(const id of required){
+   const el=document.getElementById(id);
+   if((el.type==='file' && !el.files.length) || (el.type!=='file' && el.value==='')){
+     alert('Please complete the photo and natural-coloring fields. “Not sure” is available where appropriate.');
+     el.focus(); return;
+   }
+ }
+ guest.naturalColoring={
+   hairHistory:document.getElementById('hairHistory').value,
+   hairDepth:document.getElementById('hairDepth').value,
+   hairTemp:document.getElementById('hairTemp').value,
+   eyeColor:document.getElementById('eyeColor').value,
+   eyeDepth:document.getElementById('eyeDepth').value,
+   browOverride:document.getElementById('browOverride').value,
+   makeup:document.getElementById('makeup').value
+ };
+ go('questionsPreview',4);
+}
+
 </script>
 </body>
 </html>
