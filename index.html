@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot by ŌRA Salon · 5F-3</title>
+<title>Color Snapshot by ŌRA Salon · 5F-4</title>
 <style>
 :root {
   --ora-red:#ef1016;
@@ -70,6 +70,22 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
 .review-box{border-top:1px solid var(--line);padding-top:18px;margin-top:20px}
 .review-row{padding:9px 0;border-bottom:1px solid #eee7de;font-size:13px;line-height:1.45}
 .review-row b{display:block;color:var(--ink);margin-bottom:2px}
+
+.analysis-stage{text-align:center;padding:28px 0}
+.spinner{width:54px;height:54px;border:2px solid #eadfd4;border-top-color:var(--ora-red);border-radius:50%;margin:24px auto;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.found{text-align:center;padding:28px 0}
+.found-mark{font-family:Georgia,"Times New Roman",serif;font-size:72px;color:var(--ora-red);line-height:1;margin-bottom:15px}
+.result-season{font-family:Georgia,"Times New Roman",serif;font-size:54px;font-weight:400;line-height:1;margin:8px 0 12px}
+.result-sub{font-family:Georgia,"Times New Roman",serif;font-size:20px;line-height:1.4;color:var(--muted)}
+.palette{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:24px 0}
+.palette i{display:block;aspect-ratio:1;border-radius:50%;border:1px solid rgba(0,0,0,.07)}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.result-tile{border-top:1px solid var(--line);padding:15px 0}
+.result-tile b{display:block;text-transform:uppercase;letter-spacing:.12em;font-size:10px;color:var(--ora-red);margin-bottom:6px}
+.result-tile span{font-family:Georgia,"Times New Roman",serif;font-size:17px;line-height:1.35}
+.confidence-pill{display:inline-block;border:1px solid var(--ora-red);color:var(--ora-red);padding:6px 10px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;margin-top:8px}
+.engine-note{font-size:11px;color:var(--muted);margin-top:18px;line-height:1.5}
 @media(max-width:820px){
  .shell{grid-template-columns:1fr}
  .brand-panel{min-height:46vh;border-right:0;border-bottom:1px solid var(--line);padding:34px 28px}
@@ -268,8 +284,45 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
     <h2>We have what we need.</h2>
     <p>Rebecca can quickly review the color clues below before starting the analysis. Nothing here needs to be changed just to make a particular season appear.</p>
     <div id="answerReview" class="review-box"></div>
-    <button disabled style="opacity:.45;cursor:not-allowed">Analysis + reveal comes in 5F-4</button>
+    <button id="analyzeBtn" onclick="runColorSnapshot()">Analyze Color Snapshot</button>
     <button class="secondary" onclick="go('questions',4)">Back to questions</button>
+  </section>
+
+
+  <section class="step" id="analyzing">
+    <div class="analysis-stage">
+      <div class="kicker">Color Snapshot analysis</div>
+      <h2>Finding your color story…</h2>
+      <div class="spinner"></div>
+      <p id="analysisMessage">Reading the photo and combining your natural-color clues.</p>
+    </div>
+  </section>
+
+  <section class="step" id="found">
+    <div class="found">
+      <div class="found-mark">Ō</div>
+      <div class="kicker">Color Snapshot complete</div>
+      <h2>We found your colors.</h2>
+      <p>Your result is ready. Rebecca controls the reveal so you can discover it together.</p>
+      <button onclick="revealResult()">Reveal my Color Snapshot</button>
+    </div>
+  </section>
+
+  <section class="step" id="result">
+    <div class="kicker">Your Color Snapshot · by ŌRA Salon</div>
+    <div class="result-season" id="resultSeason">—</div>
+    <div class="result-sub" id="resultSignature"></div>
+    <div class="confidence-pill" id="resultConfidence"></div>
+    <div class="palette" id="resultPalette"></div>
+    <div class="result-grid">
+      <div class="result-tile"><b>Best neutrals</b><span id="resultNeutrals"></span></div>
+      <div class="result-tile"><b>Metals</b><span id="resultMetals"></span></div>
+      <div class="result-tile"><b>Makeup</b><span id="resultMakeup"></span></div>
+      <div class="result-tile"><b>Hair direction</b><span id="resultHair"></span></div>
+    </div>
+    <div class="summary"><strong id="resultAdjacent"></strong><div class="small">Your closest neighboring palette can be useful when your result is blended.</div></div>
+    <button class="secondary" onclick="go('review',5)">Back to host review</button>
+    <div class="engine-note">Color Snapshot is a personalized styling framework, not a scientific or medical classification.</div>
   </section>
 </div>
 </section>
@@ -355,6 +408,121 @@ function saveQuestions(){
  go('review',5);
 }
 
+
+const seasonContent={
+"Light Spring":{sig:"Light, warm and fresh",pal:["#f5a08e","#f4bd78","#62c7c0","#a7c96b","#f3d66f","#7ebcc8","#ef7e7b","#d8b88b","#7dbb93","#9faed8","#ffd6b0","#e48d9a"],neu:"Ivory · light camel · warm navy",met:"Light gold · champagne gold",make:"Peach · apricot · warm pink · light coral",hair:"Light golden · warm beige · strawberry · soft golden dimension"},
+"Warm Spring":{sig:"Warm, clear and lively",pal:["#ef6d55","#ed9a3f","#31b7b0","#7fb64c","#f0c541","#48bfc5","#e95b4d","#58a65e","#f48a72","#9c72b0","#218b87","#f4aa8f"],neu:"Cream · camel · warm navy",met:"Yellow gold · rose gold",make:"Coral · peach · warm red · apricot",hair:"Golden · honey · copper-gold · caramel · warm brunette"},
+"Bright Spring":{sig:"Clear, warm and high-energy",pal:["#ff6657","#16bfc0","#e63d4f","#008f88","#8fcf39","#f24d86","#356fc4","#168e5e","#ff9a72","#f2cf39","#8057bd","#55cbd0"],neu:"Ivory · navy · warm charcoal",met:"Shiny gold · mixed metals",make:"Vivid coral · warm pink · clear red",hair:"Clear golden · vibrant copper · dimensional warm brunette"},
+"Light Summer":{sig:"Light, cool and softly fresh",pal:["#9fc4df","#d98fa7","#b9a9d3","#b8d8c4","#7eb6b7","#aab8dc","#d77c8c","#7dbcc9","#aa83a7","#91b3cf","#c889a1","#a8c5df"],neu:"Soft white · dove gray · light navy",met:"Silver · white gold · light rose gold",make:"Cool pink · rose · soft raspberry",hair:"Pearl · cool beige · soft ash · light dimensional brunette"},
+"Cool Summer":{sig:"Cool, refined and softly defined",pal:["#b45f78","#a73f68","#3d8f91","#738bb9","#9b718c","#735377","#557f70","#526b8d","#9b4f64","#c57a99","#7164a2","#697f9e"],neu:"Cool taupe · charcoal · navy",met:"Silver · white gold · platinum",make:"Rose · mauve · raspberry · cool berry",hair:"Cool beige · ash · mushroom · softly dimensional brunette"},
+"Soft Summer":{sig:"Cool-neutral, muted and blended",pal:["#b98488","#8e9b7a","#5f8e8e","#9a788e","#758ca0","#a29aad","#a05f72","#84909a","#7d9b8a","#80677e","#748a9d","#ad858d"],neu:"Mushroom · soft navy · cool gray",met:"Brushed silver · white gold · soft rose gold",make:"Dusty rose · mauve · muted berry",hair:"Mushroom · cool beige · taupe · ash blonde · soft dimension"},
+"Soft Autumn":{sig:"Warm-neutral, muted and earthy",pal:["#c98d75","#7f8a5d","#568984","#b7664e","#91a078","#ad7372","#6f7c4e","#a85d43","#5f8e8a","#9b6a4e","#c8796b","#76556b"],neu:"Warm taupe · camel · cocoa",met:"Brushed gold · bronze · copper",make:"Warm rose · muted peach · terracotta",hair:"Caramel · warm beige · soft auburn · muted copper · warm brunette"},
+"Warm Autumn":{sig:"Rich, warm and grounded",pal:["#a94f32","#c49a35","#65743c","#c96b2e","#287b76","#8f3e32","#69703a","#b85b2e","#684461","#365c46","#a54835","#9b6a37"],neu:"Camel · chocolate · warm beige",met:"Yellow gold · bronze · copper",make:"Brick · cinnamon · terracotta · warm berry",hair:"Copper · auburn · chestnut · caramel · rich warm brunette"},
+"Deep Autumn":{sig:"Deep, warm and richly dimensional",pal:["#246a69","#31583d","#65415d","#8b4639","#674335","#46512f","#783b45","#9d4d32","#237b79","#a44836","#8b7130","#54382f"],neu:"Espresso · dark olive · warm charcoal",met:"Antique gold · bronze · copper",make:"Deep terracotta · brick · warm berry",hair:"Warm espresso · chestnut · mahogany · deep auburn · caramel"},
+"Deep Winter":{sig:"Deep, cool and dramatic",pal:["#6f2942","#18704f","#155f66","#533d79","#263c66","#a53b68","#285642","#9b354f","#315fb0","#d58aa8","#b52f42","#8d2c70"],neu:"Black · charcoal · crisp white",met:"Silver · white gold · platinum",make:"Wine · berry · blue-red · deep rose",hair:"Espresso · cool dark brunette · deep burgundy-brown · high-contrast cool tones"},
+"Cool Winter":{sig:"Cool, clear and striking",pal:["#245bb5","#16845c","#d72f7d","#b52f42","#6344a1","#a8cfea","#bd2f83","#237d82","#c93442","#285a45","#e83b8d","#2f62a9"],neu:"Black · pure white · charcoal",met:"Silver · white gold · platinum",make:"Fuchsia · blue-red · raspberry · cool wine",hair:"Cool brunette · blue-black · icy blonde · silver gray · cool high contrast"},
+"Bright Winter":{sig:"Cool, vivid and high-contrast",pal:["#1768d1","#ef3b91","#18b9bd","#7848c7","#d92f43","#15915e","#d82e8b","#85d6d6","#315fc4","#d93270","#e5ce38","#188f91"],neu:"Black · optic white · navy",met:"Polished silver · white gold · mixed metals",make:"Hot pink · clear berry · blue-red",hair:"Clear cool brunette · blue-black · icy blonde · high contrast"}
+};
+function showFinalResult(r){
+ const c=seasonContent[r.primary];
+ document.getElementById('resultSeason').textContent=r.primary;
+ document.getElementById('resultSignature').textContent=c.sig;
+ document.getElementById('resultConfidence').textContent=r.confidence+' match';
+ document.getElementById('resultPalette').innerHTML=c.pal.map(x=>'<i style="background:'+x+'"></i>').join('');
+ document.getElementById('resultNeutrals').textContent=c.neu;
+ document.getElementById('resultMetals').textContent=c.met;
+ document.getElementById('resultMakeup').textContent=c.make;
+ document.getElementById('resultHair').textContent=c.hair;
+ document.getElementById('resultAdjacent').textContent='Also explore: '+r.adjacent;
+}
+window.revealResult=function(){ if(window.csResult){showFinalResult(window.csResult);go('result',5);} }
+
 </script>
+
+<script type="module">
+import {FaceLandmarker,FilesetResolver} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
+let landmarker=null;
+const clamp=n=>Math.max(-3,Math.min(3,n));
+try{
+ const vision=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm");
+ landmarker=await FaceLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",delegate:"CPU"},runningMode:"IMAGE",numFaces:1,minFaceDetectionConfidence:.5,minFacePresenceDetectionConfidence:.5,minFacePresenceConfidence:.5});
+}catch(e){console.error(e)}
+
+function rgb2lab(r,g,b){r/=255;g/=255;b/=255;[r,g,b]=[r,g,b].map(v=>v>.04045?Math.pow((v+.055)/1.055,2.4):v/12.92);let x=(r*.4124+g*.3576+b*.1805)/.95047,y=(r*.2126+g*.7152+b*.0722),z=(r*.0193+g*.1192+b*.9505)/1.08883;[x,y,z]=[x,y,z].map(v=>v>.008856?Math.cbrt(v):7.787*v+16/116);return[116*y-16,500*(x-y),200*(y-z)]}
+function sampleCircle(ctx,cx,cy,r){let d=ctx.getImageData(Math.max(0,cx-r),Math.max(0,cy-r),2*r,2*r).data,rs=[],gs=[],bs=[];for(let y=0;y<2*r;y++)for(let x=0;x<2*r;x++)if((x-r)**2+(y-r)**2<=r*r){let i=(y*2*r+x)*4;if(d[i+3]){rs.push(d[i]);gs.push(d[i+1]);bs.push(d[i+2])}}let med=a=>a.sort((x,y)=>x-y)[Math.floor(a.length/2)]||0,rgb=[med(rs),med(gs),med(bs)],lab=rgb2lab(...rgb);return{rgb,lab,C:Math.hypot(lab[1],lab[2])}}
+function p(lm,i,w,h){return[lm[i].x*w,lm[i].y*h]}
+function validSkin(z){let[L,a,b]=z.lab;z.valid=L>=30&&L<=92&&z.C<=65&&a>-5&&a<45&&b>-15&&b<55;return z}
+function validBrow(z){let[L]=z.lab;z.valid=L>=2&&L<=80&&z.C<=55;return z}
+function median(a){a=[...a].sort((x,y)=>x.lab[0]-y.lab[0]);return a[Math.floor(a.length/2)]}
+const targets={"Light Spring":[1.5,-2.5,1,-1],"Warm Spring":[2.7,-1,1.5,0],"Bright Spring":[1,0,2.7,2],"Light Summer":[-1,-2.5,-.8,-1.8],"Cool Summer":[-2.7,-.5,-.5,-.3],"Soft Summer":[-.8,0,-2.7,-1.5],"Soft Autumn":[.8,.3,-2.7,-1],"Warm Autumn":[2.7,.8,-1,0],"Deep Autumn":[1,2.5,-.8,1],"Deep Winter":[-.8,2.5,.8,2],"Cool Winter":[-2.7,.7,1.5,1.5],"Bright Winter":[-1,0,2.8,2.7]};
+const weights={"Light Spring":[.2,.35,.25,.2],"Light Summer":[.2,.35,.2,.25],"Warm Spring":[.35,.2,.25,.2],"Warm Autumn":[.35,.2,.25,.2],"Cool Summer":[.35,.2,.25,.2],"Cool Winter":[.35,.15,.25,.25],"Soft Summer":[.25,.15,.35,.25],"Soft Autumn":[.25,.15,.35,.25],"Bright Spring":[.25,.15,.3,.3],"Bright Winter":[.25,.15,.3,.3],"Deep Autumn":[.2,.35,.2,.25],"Deep Winter":[.2,.35,.2,.25]};
+const adj={"Light Spring":["Light Summer","Warm Spring"],"Warm Spring":["Light Spring","Bright Spring","Warm Autumn"],"Bright Spring":["Warm Spring","Bright Winter"],"Light Summer":["Light Spring","Cool Summer","Soft Summer"],"Cool Summer":["Light Summer","Soft Summer","Cool Winter"],"Soft Summer":["Cool Summer","Soft Autumn","Light Summer"],"Soft Autumn":["Soft Summer","Warm Autumn","Deep Autumn"],"Warm Autumn":["Soft Autumn","Deep Autumn","Warm Spring"],"Deep Autumn":["Warm Autumn","Deep Winter","Soft Autumn"],"Deep Winter":["Deep Autumn","Cool Winter","Bright Winter"],"Cool Winter":["Cool Summer","Deep Winter","Bright Winter"],"Bright Winter":["Bright Spring","Cool Winter","Deep Winter"]};
+function dist(n,v){return Math.sqrt(v.reduce((z,a,i)=>z+weights[n][i]*(a-targets[n][i])**2,0))}
+function numAnswer(q){let x=colorAnswers[q]?.value;return x==="unknown"||x==null?null:Number(x)}
+
+window.runColorSnapshot=async function(){
+ go('analyzing',5);
+ const msg=document.getElementById('analysisMessage');
+ try{
+  if(!landmarker) throw Error("The analysis engine is still loading. Please go back and try again in a moment.");
+  const img=document.getElementById('photoPreview');
+  if(!img.src||!img.naturalWidth) throw Error("The guest photo is not ready.");
+  msg.textContent="Reading facial landmarks and usable skin/brow measurements…";
+  await new Promise(r=>setTimeout(r,450));
+  const work=document.createElement("canvas"),w=img.naturalWidth,h=img.naturalHeight;work.width=w;work.height=h;
+  const ctx=work.getContext("2d",{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);
+  const res=landmarker.detect(img);if(!res.faceLandmarks?.length)throw Error("No face was detected. Please use a clearer, straight-on photo.");
+  const lm=res.faceLandmarks[0],lc=p(lm,234,w,h),rc=p(lm,454,w,h),lb=p(lm,70,w,h),rb=p(lm,300,w,h);
+  const faceW=Math.abs(rc[0]-lc[0]),rad=Math.max(4,Math.round(faceW*.035));
+  let skins=[
+   sampleCircle(ctx,lc[0]+faceW*.15,lc[1],rad),sampleCircle(ctx,rc[0]-faceW*.15,rc[1],rad),
+   sampleCircle(ctx,lc[0]+faceW*.21,lc[1]-rad*.35,Math.max(3,Math.round(rad*.8))),
+   sampleCircle(ctx,rc[0]-faceW*.21,rc[1]-rad*.35,Math.max(3,Math.round(rad*.8)))
+  ].map(validSkin).filter(x=>x.valid);
+  if(skins.length<2)throw Error("The photo lighting is not reliable enough. Please retake it in even, neutral light.");
+  const skin=median(skins),skinL=skin.lab[0];
+  if(faceW/w<.22||skinL<28||skinL>88)throw Error("The photo needs a retake. Move a little closer and use even, neutral light.");
+  let brows=[sampleCircle(ctx,lb[0],lb[1],Math.max(3,Math.round(rad*.62))),sampleCircle(ctx,rb[0],rb[1],Math.max(3,Math.round(rad*.62)))].map(validBrow).filter(x=>x.valid);
+  let brow=brows.length?median(brows):null;
+
+  msg.textContent="Combining your natural coloring with your four color clues…";
+  await new Promise(r=>setTimeout(r,500));
+  const hairRaw=document.getElementById('hairDepth').value;
+  const hairDepth=hairRaw==="unknown"?null:Number(hairRaw);
+  const hairTone=Number(document.getElementById('hairTemp').value);
+  const eyeKey=document.getElementById('eyeColor').value;
+  const eyeAdj=Number(document.getElementById('eyeDepth').value);
+  const eyeBase={Blue:-1.4,Gray:-1.2,Green:-.8,Hazel:0,Brown:.7,"Very dark brown":1.5}[eyeKey];
+  const eyeDepth=clamp(eyeBase+eyeAdj*.45),skinDepth=clamp((62-skinL)/10);
+  let browDepth=null;
+  const bo=document.getElementById('browOverride').value;
+  if(bo==="photo"){if(brow&&(skinL-brow.lab[0])>=5)browDepth=clamp((62-brow.lab[0])/10)}
+  else if(bo!=="exclude")browDepth=Number(bo);
+  let parts=[skinDepth,eyeDepth];if(hairDepth!==null)parts.push(hairDepth);if(browDepth!==null)parts.push(browDepth);
+  const value=clamp(parts.reduce((a,b)=>a+b,0)/parts.length);
+  const range=Math.max(...parts)-Math.min(...parts),photoContrast=clamp((range-2.2)*1.15);
+
+  const q1=numAnswer('q1'),q2=numAnswer('q2'),qc=numAnswer('q3'),qx=numAnswer('q4');
+  const temps=[q1,q2].filter(x=>x!==null);
+  const qt=temps.length?temps.reduce((a,b)=>a+b,0)/temps.length:null;
+  const t=qt===null?clamp(hairTone*.75):clamp(.85*qt+.15*hairTone);
+  const c=qc===null?clamp(eyeAdj*.75):clamp(.85*qc+.15*eyeAdj); // frozen 5E-9 Q3 ±2
+  const x=qx===null?photoContrast:clamp(.75*photoContrast+.25*qx);
+  const profile=[t,value,c,x];
+  const all=Object.keys(targets).map(n=>({n,d:dist(n,profile)})).sort((a,b)=>a.d-b.d);
+  const pri=all[0],raw=all[1],sec=adj[pri.n].map(n=>({n,d:dist(n,profile)})).sort((a,b)=>a.d-b.d)[0];
+  const sep=(sec.d-pri.d)/sec.d;
+  const confidence=sep>=.20?"Strong":sep>=.10?"Good":"Blended";
+  window.csResult={primary:pri.n,adjacent:sec.n,runner:raw.n,confidence,profile,primaryDistance:pri.d,adjacentDistance:sec.d};
+  msg.textContent="Your Color Snapshot is ready.";
+  await new Promise(r=>setTimeout(r,650));
+  go('found',5);
+ }catch(e){
+   console.error(e); alert(e.message);
+   go('review',5);
+ }
+}
+</script>
+
 </body>
 </html>
