@@ -1,64 +1,76 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot — 5E-5 Photo + Questionnaire Fusion</title>
+<title>Color Snapshot — 5E-6 12-Season Scoring Engine</title>
 <style>
-:root{--c:#f5f0e7;--r:#d95335;--i:#302f2d;--m:#746f69;--l:#d8d0c5;--g:#2f6948}
-*{box-sizing:border-box}body{margin:0;background:var(--c);color:var(--i);font-family:Arial,sans-serif}main{max-width:1180px;margin:auto;padding:30px 22px 60px}
-header{text-align:center}.logo{font:46px Georgia;color:var(--r);letter-spacing:.14em}.tag{font-size:10px;letter-spacing:.2em}h1{font:30px Georgia;margin:24px 0 5px}.sub,.note{color:var(--m)}
-.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;margin-top:24px}.photo{background:#ddd6cd;min-height:440px;display:flex;align-items:center;justify-content:center;overflow:hidden}canvas{width:100%;height:auto}
-.panel{border-top:1px solid var(--l);padding-top:14px}label,.qtitle{display:block;font-size:13px;font-weight:bold;margin:9px 0 6px}input,select{width:100%;padding:7px;margin-bottom:8px}
-.q{border-top:1px solid var(--l);padding:9px 0}.opts label{font-weight:normal;margin:5px 0;display:flex;gap:7px;align-items:flex-start}.opts input{width:auto;margin:2px 0 0}
-button{width:100%;padding:14px;border:0;background:var(--r);color:white;font-weight:bold;letter-spacing:.04em;margin-top:8px}button:disabled{opacity:.45}
-.status,.card{border:1px solid var(--l);background:#fff8;padding:10px;margin-top:9px;font-size:12px}.ok{color:var(--g);font-weight:bold}
-.results{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.big{font:25px Georgia;display:block;margin:2px 0}.bar{height:7px;background:#ddd5cb;position:relative;margin:7px 0}.bar:before{content:"";position:absolute;left:50%;top:-3px;height:13px;border-left:1px solid #777}.mark{position:absolute;top:-2px;width:5px;height:11px;background:var(--r);transform:translateX(-50%)}h2{font:19px Georgia;border-bottom:1px solid var(--l);padding-bottom:5px;margin:17px 0 5px}.note{font-size:11px;line-height:1.45}
-@media(max-width:820px){.grid{grid-template-columns:1fr}.photo{min-height:320px}}
+:root{--cream:#f5f0e7;--red:#d95335;--ink:#302f2d;--muted:#746f69;--line:#d8d0c5;--green:#2f6948}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,sans-serif}main{max-width:1120px;margin:auto;padding:34px 22px 60px}
+header{text-align:center}.logo{font:46px Georgia,serif;color:var(--red);letter-spacing:.14em}.tag{font-size:10px;letter-spacing:.2em}h1{font:30px Georgia,serif;margin:25px 0 6px}.sub,.note{color:var(--muted)}
+.panel{max-width:900px;margin:26px auto 0;border-top:1px solid var(--line);padding-top:18px}.profile{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.field{border:1px solid var(--line);background:#fff8;padding:10px}
+.field label{font-size:11px;font-weight:bold;display:block;margin-bottom:5px}.field input{width:100%;font-size:20px;font-family:Georgia,serif;padding:6px;border:1px solid var(--line);background:white}
+button{width:100%;border:0;background:var(--red);color:white;padding:14px;font-weight:bold;letter-spacing:.05em;margin:14px 0 0;cursor:pointer}
+.status{border:1px solid var(--line);background:#fff8;padding:11px;margin-top:10px;font-size:12px}.ok{color:var(--green);font-weight:bold}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-top:14px}.result{border:1px solid var(--line);background:#fff8;padding:16px}.eyebrow{font-size:10px;letter-spacing:.13em;color:var(--muted);font-weight:bold}.season{font:34px Georgia,serif;margin:4px 0}.secondary{font:21px Georgia,serif;margin:5px 0}.confidence{font-size:20px;font-weight:bold}
+table{width:100%;border-collapse:collapse;margin-top:14px;background:#fff8}th,td{border-bottom:1px solid var(--line);padding:9px;text-align:left;font-size:12px}th{font-size:10px;letter-spacing:.08em;color:var(--muted)}tr:first-child td{font-weight:bold}
+.dim{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}.mini{border:1px solid var(--line);background:#fff8;padding:9px;font-size:11px}.mini strong{font-size:17px;display:block}
+.note{font-size:11px;line-height:1.45;margin-top:13px}.tag2{display:inline-block;border:1px solid var(--line);padding:3px 6px;margin:2px;font-size:10px}
+@media(max-width:760px){.profile,.dim{grid-template-columns:1fr 1fr}.hero{grid-template-columns:1fr}.logo{font-size:38px}}
 </style></head><body><main>
-<header><div class="logo">ŌRA</div><div class="tag">ORIGINAL. ROOTED. AUTHENTIC.</div><h1>Color Snapshot — Photo + Questionnaire Fusion</h1><div class="sub">Step 5E-5: combine photographic evidence with four guided color questions. No season is assigned yet.</div></header>
-<div class="grid"><div class="photo"><div id="ph">Choose a straight-on portrait.</div><canvas id="cv" hidden></canvas></div><div class="panel">
-<label>Choose test photograph</label><input id="file" type="file" accept="image/*">
-<label>Is the hair color we see today close to your natural color?</label><select id="hair"><option value="yes">Yes</option><option value="partial">Partially — highlights, gray, etc.</option><option value="no">No — significantly different</option></select>
-
-<div class="q"><div class="qtitle">1. Which metal tends to look best near your face?</div><div class="opts">
-<label><input type="radio" name="q1" value="2">Gold</label><label><input type="radio" name="q1" value="-2">Silver</label><label><input type="radio" name="q1" value="0">Both seem equally good</label><label><input type="radio" name="q1" value="na" checked>Not sure</label></div></div>
-
-<div class="q"><div class="qtitle">2. Which color family tends to make you look healthier?</div><div class="opts">
-<label><input type="radio" name="q2" value="3">Warm earthy — coral, camel, olive, rust</label><label><input type="radio" name="q2" value="-3">Cool fresh — rose, berry, blue, lavender</label><label><input type="radio" name="q2" value="0">Both</label><label><input type="radio" name="q2" value="na" checked>Not sure</label></div></div>
-
-<div class="q"><div class="qtitle">3. Which colors feel most naturally you?</div><div class="opts">
-<label><input type="radio" name="q3" value="soft">Soft/blended — dusty rose, sage, muted blue, mauve</label><label><input type="radio" name="q3" value="bright">Clear/vibrant — coral, cobalt, emerald, vivid pink</label><label><input type="radio" name="q3" value="0">Somewhere between</label><label><input type="radio" name="q3" value="na" checked>Not sure</label></div></div>
-
-<div class="q"><div class="qtitle">4. How would you describe your natural contrast?</div><div class="opts">
-<label><input type="radio" name="q4" value="-2">My features blend softly</label><label><input type="radio" name="q4" value="0">There is a noticeable difference</label><label><input type="radio" name="q4" value="2">Strong light/dark difference</label><label><input type="radio" name="q4" value="na" checked>Not sure</label></div></div>
-
-<button id="go" disabled>COMBINE PHOTO + QUESTIONS ✦</button><div class="status" id="st">Loading MediaPipe…</div>
-<div id="out" hidden><h2>Four-dimensional profile</h2><div class="results" id="results"></div><p class="note"><b>Important:</b> “Not sure” contributes no zero score. Its unavailable weight is removed and the remaining evidence is renormalized. Value remains photo-only in this MVP because these four guest questions do not directly measure depth.</p></div>
-</div></div></main>
-<script type="module">
-import{FaceLandmarker,FilesetResolver}from"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
-const $=x=>document.getElementById(x),cv=$("cv"),cx=cv.getContext("2d"),file=$("file"),hair=$("hair"),go=$("go"),st=$("st"),out=$("out");let img=null,fl=null,ready=false,u=null;const cl=(v,a,b)=>Math.max(a,Math.min(b,v));function upd(){go.disabled=!(ready&&img)}
-function lab(c){let[r,g,b]=[c.r,c.g,c.b].map(x=>x/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);let X=(r*.4124564+g*.3575761+b*.1804375)/.95047,Y=r*.2126729+g*.7151522+b*.072175,Z=(r*.0193339+g*.119192+b*.9503041)/1.08883,f=t=>t>.008856?Math.cbrt(t):7.787*t+16/116,fx=f(X),fy=f(Y),fz=f(Z),L=116*fy-16,a=500*(fx-fy),bb=200*(fy-fz);return{L,a,b:bb,C:Math.hypot(a,bb)}}
-function mean(a){if(!a.length)return null;return{r:a.reduce((s,p)=>s+p.r,0)/a.length,g:a.reduce((s,p)=>s+p.g,0)/a.length,b:a.reduce((s,p)=>s+p.b,0)/a.length}}
-function samp(oc,x,y,w,h,dark=false){x=cl(Math.round(x),0,cv.width-1);y=cl(Math.round(y),0,cv.height-1);w=cl(Math.round(w),1,cv.width-x);h=cl(Math.round(h),1,cv.height-y);let z=oc.getImageData(x,y,w,h).data,a=[];for(let i=0;i<z.length;i+=16){let r=z[i],g=z[i+1],b=z[i+2],L=.2126*r+.7152*g+.0722*b;a.push({r,g,b,L})}a.sort((p,q)=>p.L-q.L);a=dark?a.slice(0,Math.max(1,Math.floor(a.length*.35))):a.slice(Math.floor(a.length*.15),Math.max(1,Math.floor(a.length*.85)));return mean(a)}
-function P(l,i){return{x:l[i].x*cv.width,y:l[i].y*cv.height}}function box(x,y,w,h,col){cx.save();cx.strokeStyle=col;cx.lineWidth=3;cx.setLineDash([7,5]);cx.strokeRect(x,y,w,h);cx.restore()}
-function selected(n){return document.querySelector(`input[name="${n}"]:checked`)?.value??"na"}
-function fuse(photo,pw,quiz,qw,available){if(!available)return photo;return cl((photo*pw+quiz*qw)/(pw+qw),-3,3)}
-function card(n,v,e,lo,hi){let p=(cl(v,-3,3)+3)/6*100;return`<div class="card"><b>${n}</b><span class="big">${v>=0?"+":""}${v.toFixed(2)}</span><div class="bar"><i class="mark" style="left:${p}%"></i></div>${lo} ← 0 → ${hi}<br>${e}</div>`}
-(async()=>{try{let v=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm");fl=await FaceLandmarker.createFromOptions(v,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",delegate:"CPU"},runningMode:"IMAGE",numFaces:1});ready=true;st.innerHTML='<span class="ok">✓ Fusion engine ready.</span>';upd()}catch(e){st.textContent="Engine error: "+e.message}})();
-file.onchange=()=>{let f=file.files[0];if(!f)return;if(u)URL.revokeObjectURL(u);u=URL.createObjectURL(f);let im=new Image;im.onload=()=>{img=im;let s=Math.min(1,900/im.naturalWidth);cv.width=im.naturalWidth*s;cv.height=im.naturalHeight*s;cx.drawImage(im,0,0,cv.width,cv.height);$("ph").hidden=true;cv.hidden=false;st.innerHTML='<span class="ok">✓ Photo loaded.</span>';upd()};im.src=u};
-go.onclick=()=>{go.disabled=true;out.hidden=true;try{let r=fl.detect(img),l=r.faceLandmarks?.[0];if(!l)throw Error("No usable face detected.");cx.drawImage(img,0,0,cv.width,cv.height);let L=P(l,234),R=P(l,454),T=P(l,10),C=P(l,152),N=P(l,1),fw=Math.abs(R.x-L.x),fh=Math.abs(C.y-T.y),mx=(L.x+R.x)/2,off=document.createElement("canvas");off.width=cv.width;off.height=cv.height;let oc=off.getContext("2d");oc.drawImage(img,0,0,cv.width,cv.height);
-let skinZ=[[mx-fw*.34,N.y-fh*.15,fw*.10,fh*.10],[mx+fw*.24,N.y-fh*.15,fw*.10,fh*.10],[mx-fw*.35,N.y+fh*.11,fw*.10,fh*.10],[mx+fw*.25,N.y+fh*.11,fw*.10,fh*.10]],skin=mean(skinZ.map(z=>{box(...z,"#e34b3f");return samp(oc,...z)}));
-let li=P(l,468),ri=P(l,473),iw=fw*.055,ih=fh*.05,iris=mean([[li.x-iw/2,li.y-ih/2,iw,ih],[ri.x-iw/2,ri.y-ih/2,iw,ih]].map(z=>{box(...z,"#2d6cdf");return samp(oc,...z,true)}));
-let le=P(l,159),re=P(l,386),bw=fw*.20,bh=fh*.05,brow=mean([[le.x-bw/2,le.y-fh*.13,bw,bh],[re.x-bw/2,re.y-fh*.13,bw,bh]].map(z=>{box(...z,"#7b4bb7");return samp(oc,...z,true)}));
-let hz=[[mx-fw*.30,T.y-fh*.20,fw*.22,fh*.10],[mx+fw*.08,T.y-fh*.20,fw*.22,fh*.10],[L.x-fw*.10,T.y+fh*.02,fw*.10,fh*.20],[R.x,T.y+fh*.02,fw*.10,fh*.20]],hc=mean(hz.map(z=>{box(...z,"#2c8b57");return samp(oc,...z)}));
-let S=lab(skin),I=lab(iris),B=lab(brow),H=lab(hc),hw=hair.value==="yes"?1:hair.value==="partial"?.35:0,feat=(I.L*.45+B.L*.35+H.L*.20*hw)/(.80+.20*hw),overall=S.L*.45+feat*.55;
-let pValue=cl((58-overall)/8.5,-3,3),cr=(Math.abs(S.L-I.L)*.50+Math.abs(S.L-B.L)*.35+Math.abs(S.L-H.L)*.15*hw)/(.85+.15*hw),pContrast=cl((cr-32)/10,-3,3),chr=(S.C*.20+I.C*.35+B.C*.25+H.C*.20*hw)/(.80+.20*hw),pChroma=cl((chr-22)/6.5,-3,3);
-// Questionnaire evidence. "na" is unavailable, never numeric zero.
-let q1=selected("q1"),q2=selected("q2"),q3=selected("q3"),q4=selected("q4");
-let tempVals=[q1,q2].filter(v=>v!=="na").map(Number), tempAvail=tempVals.length>0, qTemp=tempAvail?tempVals.reduce((a,b)=>a+b,0)/tempVals.length:0;
-let chromaAvail=q3!=="na",qChroma=q3==="soft"?-3:q3==="bright"?3:q3==="0"?0:0;
-let contrastAvail=q4!=="na",qContrast=contrastAvail?Number(q4):0;
-// Temperature has no photo score in this build; available quiz evidence is used directly.
-// Other dimensions follow conceptual MVP weights, renormalized across evidence actually present.
-let temp=tempAvail?cl(qTemp,-3,3):0,value=pValue,chroma=fuse(pChroma,.60,qChroma,.40,chromaAvail),contrast=fuse(pContrast,.80,qContrast,.20,contrastAvail);
-$("results").innerHTML=card("TEMPERATURE",temp,tempAvail?`question evidence: ${qTemp.toFixed(2)}`:"no temperature evidence yet","COOL","WARM")+card("VALUE",value,`photo-only weighted L*: ${overall.toFixed(1)}`,"LIGHT","DEEP")+card("CHROMA",chroma,`photo ${pChroma.toFixed(2)}${chromaAvail?` + question ${qChroma.toFixed(2)}`:" · question unavailable"}`,"MUTED","BRIGHT")+card("CONTRAST",contrast,`photo ${pContrast.toFixed(2)}${contrastAvail?` + question ${qContrast.toFixed(2)}`:" · question unavailable"}`,"LOW","HIGH");
-out.hidden=false;st.innerHTML='<span class="ok">✓ PHOTO + QUESTION FUSION COMPLETE.</span><br>Four-dimensional profile calculated. No season assigned.'}catch(e){st.textContent="Fusion error: "+e.message}finally{upd()}};
+<header><div class="logo">ŌRA</div><div class="tag">ORIGINAL. ROOTED. AUTHENTIC.</div><h1>Color Snapshot — 12-Season Scoring Engine</h1>
+<div class="sub">Step 5E-6: compare the four-dimensional profile against all 12 seasonal targets.</div></header>
+<section class="panel">
+<div class="profile">
+<div class="field"><label>TEMPERATURE · −3 cool / +3 warm</label><input id="t" type="number" min="-3" max="3" step=".01" value="-1.50"></div>
+<div class="field"><label>VALUE · −3 light / +3 deep</label><input id="v" type="number" min="-3" max="3" step=".01" value="1.16"></div>
+<div class="field"><label>CHROMA · −3 muted / +3 bright</label><input id="c" type="number" min="-3" max="3" step=".01" value="-0.78"></div>
+<div class="field"><label>CONTRAST · −3 low / +3 high</label><input id="x" type="number" min="-3" max="3" step=".01" value="0.34"></div>
+</div>
+<button id="run">SCORE ALL 12 SEASONS ✦</button><div class="status" id="status"><span class="ok">✓ 5E-5 profile loaded.</span> Values can also be edited for future calibration tests.</div>
+<div id="out" hidden>
+<div class="hero"><div class="result"><div class="eyebrow">PRIMARY MATCH</div><div class="season" id="primary"></div><div id="primaryMeta"></div></div>
+<div class="result"><div class="eyebrow">LOGICAL ADJACENT SECONDARY</div><div class="secondary" id="secondary"></div><div class="eyebrow" style="margin-top:13px">MATCH CONFIDENCE</div><div class="confidence" id="confidence"></div><div id="sep"></div></div></div>
+<div class="dim" id="dims"></div>
+<table><thead><tr><th>Rank</th><th>Season</th><th>Weighted distance</th><th>Relationship</th></tr></thead><tbody id="rows"></tbody></table>
+<p class="note"><b>Calibration screen only.</b> Lower distance means a closer match to the target vector. Primary is the closest of all 12. Secondary is the closest season from the primary's predefined logical adjacency set, not simply the second row overall. Confidence uses the separation between primary and logical adjacent secondary: Strong ≥20%, Good 10–19%, Blended &lt;10%. No guest-facing palette is generated here.</p>
+</div></section></main>
+<script>
+const targets={
+"Light Spring":[1.5,-2.5,1.0,-1.0],"Warm Spring":[2.7,-1.0,1.5,0],"Bright Spring":[1.0,0,2.7,2.0],
+"Light Summer":[-1.0,-2.5,-0.8,-1.8],"Cool Summer":[-2.7,-0.5,-0.5,-0.3],"Soft Summer":[-0.8,0,-2.7,-1.5],
+"Soft Autumn":[0.8,0.3,-2.7,-1.0],"Warm Autumn":[2.7,0.8,-1.0,0],"Deep Autumn":[1.0,2.5,-0.8,1.0],
+"Deep Winter":[-0.8,2.5,0.8,2.0],"Cool Winter":[-2.7,0.7,1.5,1.5],"Bright Winter":[-1.0,0,2.8,2.7]};
+const weights={
+"Light Spring":[.20,.35,.25,.20],"Light Summer":[.20,.35,.20,.25],"Warm Spring":[.35,.20,.25,.20],"Warm Autumn":[.35,.20,.25,.20],
+"Cool Summer":[.35,.20,.25,.20],"Cool Winter":[.35,.15,.25,.25],"Soft Summer":[.25,.15,.35,.25],"Soft Autumn":[.25,.15,.35,.25],
+"Bright Spring":[.25,.15,.30,.30],"Bright Winter":[.25,.15,.30,.30],"Deep Autumn":[.20,.35,.20,.25],"Deep Winter":[.20,.35,.20,.25]};
+const adj={
+"Light Spring":["Light Summer","Warm Spring"],"Warm Spring":["Light Spring","Bright Spring","Warm Autumn"],"Bright Spring":["Warm Spring","Bright Winter"],
+"Light Summer":["Light Spring","Cool Summer","Soft Summer"],"Cool Summer":["Light Summer","Soft Summer","Cool Winter"],"Soft Summer":["Cool Summer","Soft Autumn","Light Summer"],
+"Soft Autumn":["Soft Summer","Warm Autumn","Deep Autumn"],"Warm Autumn":["Soft Autumn","Deep Autumn","Warm Spring"],"Deep Autumn":["Warm Autumn","Deep Winter","Soft Autumn"],
+"Deep Winter":["Deep Autumn","Cool Winter","Bright Winter"],"Cool Winter":["Cool Summer","Deep Winter","Bright Winter"],"Bright Winter":["Bright Spring","Cool Winter","Deep Winter"]};
+const $=x=>document.getElementById(x), clamp=v=>Math.max(-3,Math.min(3,Number(v)));
+function dist(name,p){let q=targets[name],w=weights[name],s=0;for(let i=0;i<4;i++)s+=w[i]*(p[i]-q[i])**2;return Math.sqrt(s)}
+function tieBreak(a,b,p){
+ let T=p[0],V=p[1],C=p[2],X=p[3], pair=[a,b].sort().join("|");
+ if(pair==="Light Spring|Light Summer") return T<0?"Light Summer":"Light Spring";
+ if(pair==="Soft Autumn|Soft Summer") return T<0?"Soft Summer":"Soft Autumn";
+ if(pair==="Bright Spring|Bright Winter") return T<0?"Bright Winter":"Bright Spring";
+ if(pair==="Deep Autumn|Deep Winter") return T<0?"Deep Winter":"Deep Autumn";
+ if(pair==="Warm Autumn|Warm Spring") return (V>0||C<0)?"Warm Autumn":"Warm Spring";
+ if(pair==="Cool Summer|Cool Winter") return (C>0||X>0.7)?"Cool Winter":"Cool Summer";
+ return a;
+}
+function run(){
+ let p=[clamp($("t").value),clamp($("v").value),clamp($("c").value),clamp($("x").value)];
+ let all=Object.keys(targets).map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d);
+ // Apply named tie-breaker only when top two are effectively close (within 0.08 distance).
+ if(all.length>1 && Math.abs(all[0].d-all[1].d)<=.08){let chosen=tieBreak(all[0].n,all[1].n,p);if(chosen===all[1].n)[all[0],all[1]]=[all[1],all[0]]}
+ let pri=all[0], candidates=adj[pri.n].map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d), sec=candidates[0];
+ let separation=sec.d>0?(sec.d-pri.d)/sec.d:0, pct=separation*100, conf=pct>=20?"STRONG":pct>=10?"GOOD":"BLENDED";
+ $("primary").textContent=pri.n;$("primaryMeta").innerHTML=`Weighted distance: <b>${pri.d.toFixed(3)}</b>`;
+ $("secondary").textContent=sec.n;$("confidence").textContent=conf;$("sep").textContent=`Primary/adjacent separation: ${pct.toFixed(1)}%`;
+ const labels=[["Temperature",p[0],"COOL","WARM"],["Value",p[1],"LIGHT","DEEP"],["Chroma",p[2],"MUTED","BRIGHT"],["Contrast",p[3],"LOW","HIGH"]];
+ $("dims").innerHTML=labels.map(z=>`<div class="mini">${z[0]}<strong>${z[1]>=0?"+":""}${z[1].toFixed(2)}</strong>${z[2]} ← 0 → ${z[3]}</div>`).join("");
+ $("rows").innerHTML=all.slice(0,6).map((r,i)=>`<tr><td>${i+1}</td><td>${r.n}</td><td>${r.d.toFixed(3)}</td><td>${r.n===pri.n?'<span class="tag2">PRIMARY</span>':r.n===sec.n?'<span class="tag2">ADJACENT SECONDARY</span>':adj[pri.n].includes(r.n)?'<span class="tag2">LOGICAL ADJACENT</span>':'—'}</td></tr>`).join("");
+ $("out").hidden=false;$("status").innerHTML='<span class="ok">✓ 12-SEASON SCORING COMPLETE.</span> Review the ranking, adjacency and separation before accepting the result.';
+}
+$("run").onclick=run;run();
 </script></body></html>
