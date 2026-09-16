@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot — 5E-8.2 Sample Validation & Measurement Repair</title>
+<title>Color Snapshot — 5E-8.3 Calibration Data Capture</title>
 <style>
 :root{--cream:#f5f0e7;--paper:#fbf8f2;--red:#db5335;--ink:#302d2a;--muted:#746e68;--line:#d8d0c5;--green:#286b49;--amber:#996317;--blue:#2867a8;--purple:#7650b5}
 *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,sans-serif}main{max-width:1240px;margin:auto;padding:28px 22px 60px}
@@ -15,7 +15,7 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 </style></head><body><main>
 <header><div class="logo">ŌRA</div><div class="tag">ORIGINAL. ROOTED. AUTHENTIC.</div>
 <h1>Color Snapshot — Integrated Calibration Test Bench</h1>
-<div class="sub">Step 5E-8.2: validate facial samples before they can influence measurements or seasonal scoring.</div></header>
+<div class="sub">Step 5E-8.3: preserve raw photo measurements, questionnaire evidence, fused dimensions, validation status, and seasonal scoring in one calibration record.</div></header>
 
 <div class="grid">
 <section>
@@ -57,6 +57,14 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 </div>
 
 <div class="card" style="margin-top:12px">
+<h2>Calibration data capture</h2>
+<div class="metrics">
+<div class="metric">PHOTO VALUE<br><b id="capPV">—</b></div>
+<div class="metric">PHOTO CHROMA<br><b id="capPC">—</b></div>
+<div class="metric">PHOTO CONTRAST<br><b id="capPX">—</b></div>
+<div class="metric">FUSED TEMP<br><b id="capFT">—</b></div>
+</div>
+<div class="diag" id="captureDiag">Raw question selections and photo measurements will be preserved when this tester is scored.</div>
 <h2>Scoring result</h2><div class="results">
 <div class="result"><small>PRIMARY</small><div class="season" id="primary">—</div><div id="pd">—</div></div>
 <div class="result"><small>RAW RUNNER-UP</small><div class="season" id="runner">—</div><div id="rd">—</div></div>
@@ -70,13 +78,13 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 
 <section class="card" style="margin-top:18px"><h2>Calibration log</h2>
 <div class="actions"><button id="csv">DOWNLOAD CSV</button><button id="clear" class="secondary">CLEAR SESSION LOG</button></div>
-<table><thead><tr><th>Tester</th><th>Quality</th><th>T</th><th>V</th><th>C</th><th>X</th><th>Primary</th><th>Runner-up</th><th>Adjacent</th><th>Temp flag</th><th>Expected</th><th>Reaction</th></tr></thead><tbody id="log"></tbody></table>
-<p class="note">Selected portraits are read in the browser and are not written to this calibration log. The log/CSV contains measurements and labels only. MediaPipe model resources are loaded remotely by the page.</p></section>
+<table><thead><tr><th>Tester</th><th>Quality</th><th>Photo V</th><th>Photo C</th><th>Photo X</th><th>Fused T</th><th>Fused V</th><th>Fused C</th><th>Fused X</th><th>Primary</th><th>Runner-up</th><th>Adjacent</th><th>Expected</th></tr></thead><tbody id="log"></tbody></table>
+<p class="note">Selected portraits are read in the browser and are not written to this calibration log. The log/CSV contains validation flags, raw photo measurements, questionnaire responses, fused dimensions, distances, and result labels — never the photograph itself. MediaPipe model resources are loaded remotely by the page.</p></section>
 
 <script type="module">
 import {FaceLandmarker,FilesetResolver} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 const $=id=>document.getElementById(id), clamp=n=>Math.max(-3,Math.min(3,n));
-let landmarker=null, photo=null, measurement=null, current=null, records=JSON.parse(localStorage.getItem("cs5e82")||"[]");
+let landmarker=null, photo=null, measurement=null, current=null, records=JSON.parse(localStorage.getItem("cs5e83")||"[]");
 
 async function init(){
  try{
@@ -229,14 +237,81 @@ $("score").onclick=()=>{
  // Temperature remains questionnaire-led because 5E-4 intentionally withheld it.
  let t=qt===null?0:clamp(qt), v=measurement.value, c=qc===null?measurement.chroma:clamp(.60*measurement.chroma+.40*qc), x=qx===null?measurement.contrast:clamp(.80*measurement.contrast+.20*qx), p=[t,v,c,x];
  let all=Object.keys(targets).map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d),pri=all[0],run=all[1],sec=adj[pri.n].map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d)[0];
- current={p,pri,run,sec,temp:conflict(pri.n,p),quality:measurement.quality};
+ current={
+   p,pri,run,sec,temp:conflict(pri.n,p),quality:measurement.quality,
+   photo:{value:measurement.value,chroma:measurement.chroma,contrast:measurement.contrast,
+          weightedL:measurement.weightedL,weightedC:measurement.weightedC,separation:measurement.separation},
+   questions:{q1:$("q1").value,q2:$("q2").value,q3:$("q3").value,q4:$("q4").value},
+   validation:{
+     skin:measurement.samples.skin.valid!==false,
+     iris:measurement.samples.iris.valid!==false,
+     brow:measurement.samples.brow.valid!==false,
+     hair:measurement.samples.hair.valid!==false
+   },
+   hairSetting:$("hair").options[$("hair").selectedIndex].text,
+   makeupSetting:$("makeup").options[$("makeup").selectedIndex].text
+  };
  $("primary").textContent=pri.n;$("pd").textContent="Distance "+pri.d.toFixed(3);$("runner").textContent=run.n;$("rd").textContent="Distance "+run.d.toFixed(3);$("secondary").textContent=sec.n;$("sd").textContent="Distance "+sec.d.toFixed(3);
  $("guard").innerHTML=(current.temp?'<span class="warn">⚠ Primary has opposite temperature-direction conflict.</span>':'<span class="pass">✓ Primary passes temperature-direction guardrail.</span>')+(run.n!==sec.n?` Raw runner-up (${run.n}) differs from logical adjacent (${sec.n}).`:" Raw runner-up is also logically adjacent.");
- $("scoreStatus").innerHTML='<span class="pass">✓ PHOTO + QUESTION FUSION COMPLETE.</span> Profile: '+p.map(v=>(v>=0?"+":"")+v.toFixed(2)).join(" · ");$("save").disabled=false;
+ $("scoreStatus").innerHTML='<span class="pass">✓ PHOTO + QUESTION FUSION COMPLETE.</span> Profile: '+p.map(v=>(v>=0?"+":"")+v.toFixed(2)).join(" · ");
+ $("capPV").textContent=(measurement.value>=0?"+":"")+measurement.value.toFixed(2);
+ $("capPC").textContent=(measurement.chroma>=0?"+":"")+measurement.chroma.toFixed(2);
+ $("capPX").textContent=(measurement.contrast>=0?"+":"")+measurement.contrast.toFixed(2);
+ $("capFT").textContent=(t>=0?"+":"")+t.toFixed(2);
+ $("captureDiag").innerHTML=`Captured: Q1 ${$("q1").options[$("q1").selectedIndex].text} · Q2 ${$("q2").options[$("q2").selectedIndex].text} · Q3 ${$("q3").options[$("q3").selectedIndex].text} · Q4 ${$("q4").options[$("q4").selectedIndex].text}`;
+ $("save").disabled=false;
 };
-function render(){$("log").innerHTML=records.map(r=>`<tr><td>${r.tester}</td><td>${r.quality}</td><td>${r.p[0].toFixed(2)}</td><td>${r.p[1].toFixed(2)}</td><td>${r.p[2].toFixed(2)}</td><td>${r.p[3].toFixed(2)}</td><td>${r.primary}</td><td>${r.runner}</td><td>${r.secondary}</td><td>${r.temp?"FLAG":"—"}</td><td>${r.expected||"Unknown"}</td><td>${r.reaction}</td></tr>`).join("")}
-$("save").onclick=()=>{if(!current)return;records.push({tester:$("tester").value||"Tester",quality:current.quality,p:current.p,primary:current.pri.n,runner:current.run.n,secondary:current.sec.n,temp:current.temp,expected:$("expected").value,reaction:$("reaction").value});localStorage.setItem("cs5e82",JSON.stringify(records));render();$("tester").value="Tester "+String(records.length+1).padStart(2,"0");$("save").disabled=true}
-$("clear").onclick=()=>{if(confirm("Clear this browser's 5E-8.2 calibration log?")){records=[];localStorage.removeItem("cs5e82");render()}}
-$("csv").onclick=()=>{let h=["Tester","Quality","Temperature","Value","Chroma","Contrast","Primary","RunnerUp","AdjacentSecondary","TemperatureFlag","Expected","Reaction"],rows=records.map(r=>[r.tester,r.quality,...r.p,r.primary,r.runner,r.secondary,r.temp?"FLAG":"",r.expected,r.reaction]),esc=v=>'"'+String(v??"").replaceAll('"','""')+'"',csv=[h,...rows].map(a=>a.map(esc).join(",")).join("\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="color_snapshot_5E8_2_calibration_log.csv";a.click()}
+function render(){
+ $("log").innerHTML=records.map(r=>`<tr>
+ <td>${r.tester}</td><td>${r.quality}</td>
+ <td>${r.photo?.value?.toFixed(2)??"—"}</td><td>${r.photo?.chroma?.toFixed(2)??"—"}</td><td>${r.photo?.contrast?.toFixed(2)??"—"}</td>
+ <td>${r.p[0].toFixed(2)}</td><td>${r.p[1].toFixed(2)}</td><td>${r.p[2].toFixed(2)}</td><td>${r.p[3].toFixed(2)}</td>
+ <td>${r.primary}</td><td>${r.runner}</td><td>${r.secondary}</td><td>${r.expected||"Unknown"}</td></tr>`).join("")
+}
+$("save").onclick=()=>{if(!current)return;records.push({
+ tester:$("tester").value||"Tester",
+ quality:current.quality,
+ photo:current.photo,
+ questions:current.questions,
+ validation:current.validation,
+ hairSetting:current.hairSetting,
+ makeupSetting:current.makeupSetting,
+ p:current.p,
+ primary:current.pri.n,
+ primaryDistance:current.pri.d,
+ runner:current.run.n,
+ runnerDistance:current.run.d,
+ secondary:current.sec.n,
+ secondaryDistance:current.sec.d,
+ temp:current.temp,
+ expected:$("expected").value,
+ reaction:$("reaction").value
+});localStorage.setItem("cs5e83",JSON.stringify(records));render();$("tester").value="Tester "+String(records.length+1).padStart(2,"0");$("save").disabled=true}
+$("clear").onclick=()=>{if(confirm("Clear this browser's 5E-8.3 calibration log?")){records=[];localStorage.removeItem("cs5e83");render()}}
+$("csv").onclick=()=>{
+ let h=[
+ "Tester","Quality","HairSetting","MakeupSetting",
+ "SkinUsed","IrisUsed","BrowUsed","HairUsed",
+ "PhotoValue","PhotoChroma","PhotoContrast","WeightedL","WeightedC","FeatureSeparation",
+ "Q1_Metal","Q2_ColorFamily","Q3_ChromaPreference","Q4_Contrast",
+ "FusedTemperature","FusedValue","FusedChroma","FusedContrast",
+ "Primary","PrimaryDistance","RunnerUp","RunnerUpDistance","AdjacentSecondary","AdjacentDistance",
+ "TemperatureFlag","Expected","Reaction"
+ ];
+ let rows=records.map(r=>[
+ r.tester,r.quality,r.hairSetting,r.makeupSetting,
+ r.validation?.skin,r.validation?.iris,r.validation?.brow,r.validation?.hair,
+ r.photo?.value,r.photo?.chroma,r.photo?.contrast,r.photo?.weightedL,r.photo?.weightedC,r.photo?.separation,
+ r.questions?.q1,r.questions?.q2,r.questions?.q3,r.questions?.q4,
+ ...r.p,r.primary,r.primaryDistance,r.runner,r.runnerDistance,r.secondary,r.secondaryDistance,
+ r.temp?"FLAG":"",r.expected,r.reaction
+ ]);
+ let esc=v=>'"'+String(v??"").replaceAll('"','""')+'"',
+ csv=[h,...rows].map(a=>a.map(esc).join(",")).join("\n"),
+ a=document.createElement("a");
+ a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+ a.download="color_snapshot_5E8_3_calibration_data.csv";
+ a.click()
+}
 render();
 </script></body></html>
