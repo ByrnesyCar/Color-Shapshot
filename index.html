@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot — 5E-8.1 Integrated Calibration Test Bench</title>
+<title>Color Snapshot — 5E-8.2 Sample Validation & Measurement Repair</title>
 <style>
 :root{--cream:#f5f0e7;--paper:#fbf8f2;--red:#db5335;--ink:#302d2a;--muted:#746e68;--line:#d8d0c5;--green:#286b49;--amber:#996317;--blue:#2867a8;--purple:#7650b5}
 *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,sans-serif}main{max-width:1240px;margin:auto;padding:28px 22px 60px}
@@ -10,12 +10,12 @@ label{font-size:11px;font-weight:bold;display:block;margin:10px 0 4px}input,sele
 .status{padding:10px;border:1px solid var(--line);margin-top:10px;font-size:12px}.pass{color:var(--green);font-weight:bold}.warn{color:var(--amber);font-weight:bold}
 h2{font:20px Georgia;border-bottom:1px solid var(--line);padding-bottom:6px}.metrics,.samples{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.metric,.sample,.result{border:1px solid var(--line);padding:8px;background:var(--paper)}.metric b{font:22px Georgia}.sw{width:28px;height:28px;border:1px solid #aaa;float:left;margin-right:7px}
 .q{border-top:1px solid var(--line);padding-top:8px;margin-top:8px}.q label{font-size:12px}.results{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.season{font:22px Georgia}.locked{opacity:.48}
-table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td{border-bottom:1px solid var(--line);padding:7px;font-size:10px;text-align:left}th{color:var(--muted);font-size:9px}.actions{display:flex;gap:8px;margin-top:10px}.actions button{flex:1}.note{font-size:11px;line-height:1.45}.tiny{font-size:10px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td{border-bottom:1px solid var(--line);padding:7px;font-size:10px;text-align:left}th{color:var(--muted);font-size:9px}.actions{display:flex;gap:8px;margin-top:10px}.actions button{flex:1}.note{font-size:11px;line-height:1.45}.tiny{font-size:10px;color:var(--muted)}.used{color:var(--green);font-weight:bold}.excluded{color:var(--amber);font-weight:bold}.diag{margin-top:8px;padding:8px;border:1px dashed var(--line);font-size:10px;color:var(--muted)}
 @media(max-width:850px){.grid{grid-template-columns:1fr}.metrics,.samples,.results{grid-template-columns:1fr 1fr}}
 </style></head><body><main>
 <header><div class="logo">ŌRA</div><div class="tag">ORIGINAL. ROOTED. AUTHENTIC.</div>
 <h1>Color Snapshot — Integrated Calibration Test Bench</h1>
-<div class="sub">Step 5E-8.1: photograph → landmarks → clean samples → measurements → questions → 12-season scoring → calibration log.</div></header>
+<div class="sub">Step 5E-8.2: validate facial samples before they can influence measurements or seasonal scoring.</div></header>
 
 <div class="grid">
 <section>
@@ -33,6 +33,7 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 <h2>Clean samples · CIELAB</h2><div class="samples" id="samples">
 <div class="sample">Skin<br><span class="tiny">waiting</span></div><div class="sample">Iris<br><span class="tiny">waiting</span></div><div class="sample">Brows<br><span class="tiny">waiting</span></div><div class="sample">Hair<br><span class="tiny">waiting</span></div>
 </div>
+<div class="diag" id="sampleDiag">Validation has not run. Each region must pass plausibility checks before it contributes.</div>
 <h2>Automatic photo measurements</h2>
 <div class="metrics">
 <div class="metric">TEMPERATURE<br><b id="mt">WITHHELD</b><div class="tiny">questionnaire-led</div></div>
@@ -75,7 +76,7 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 <script type="module">
 import {FaceLandmarker,FilesetResolver} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 const $=id=>document.getElementById(id), clamp=n=>Math.max(-3,Math.min(3,n));
-let landmarker=null, photo=null, measurement=null, current=null, records=JSON.parse(localStorage.getItem("cs5e81")||"[]");
+let landmarker=null, photo=null, measurement=null, current=null, records=JSON.parse(localStorage.getItem("cs5e82")||"[]");
 
 async function init(){
  try{
@@ -95,33 +96,121 @@ function rgb2lab(r,g,b){r/=255;g/=255;b/=255;[r,g,b]=[r,g,b].map(v=>v>.04045?Mat
 function sampleCircle(ctx,cx,cy,r){let d=ctx.getImageData(Math.max(0,cx-r),Math.max(0,cy-r),2*r,2*r).data,rs=[],gs=[],bs=[];for(let y=0;y<2*r;y++)for(let x=0;x<2*r;x++){if((x-r)**2+(y-r)**2<=r*r){let i=(y*2*r+x)*4;if(d[i+3]>0){rs.push(d[i]);gs.push(d[i+1]);bs.push(d[i+2])}}}let med=a=>a.sort((x,y)=>x-y)[Math.floor(a.length/2)]||0;let rgb=[med(rs),med(gs),med(bs)],lab=rgb2lab(...rgb);return{rgb,lab,C:Math.hypot(lab[1],lab[2])}}
 function sampleRect(ctx,x,y,w,h){let d=ctx.getImageData(Math.max(0,x),Math.max(0,y),Math.max(1,w),Math.max(1,h)).data,rs=[],gs=[],bs=[];for(let i=0;i<d.length;i+=4){if(d[i+3]){rs.push(d[i]);gs.push(d[i+1]);bs.push(d[i+2])}}let med=a=>a.sort((x,y)=>x-y)[Math.floor(a.length/2)]||0,rgb=[med(rs),med(gs),med(bs)],lab=rgb2lab(...rgb);return{rgb,lab,C:Math.hypot(lab[1],lab[2])}}
 function p(lm,i,w,h){return [lm[i].x*w,lm[i].y*h]}
-function swatch(s,name){let [r,g,b]=s.rgb,[L,a,bb]=s.lab;return `<div class="sample"><span class="sw" style="background:rgb(${r},${g},${b})"></span><b>${name}</b><br><span class="tiny">L* ${L.toFixed(1)} · C* ${s.C.toFixed(1)}<br>a* ${a.toFixed(1)} · b* ${bb.toFixed(1)}</span></div>`}
+function swatch(s,name){let [r,g,b]=s.rgb,[L,a,bb]=s.lab,ok=s.valid!==false,why=s.reason||"";return `<div class="sample"><span class="sw" style="background:rgb(${r},${g},${b})"></span><b>${name}</b> <span class="${ok?"used":"excluded"}">${ok?"USED":"EXCLUDED"}</span><br><span class="tiny">L* ${L.toFixed(1)} · C* ${s.C.toFixed(1)}<br>a* ${a.toFixed(1)} · b* ${bb.toFixed(1)}${why?`<br>${why}`:""}</span></div>`}
+
+function mark(s,valid,reason=""){s.valid=valid;s.reason=reason;return s}
+function medianSample(samples){
+ let valid=samples.filter(Boolean);
+ if(!valid.length)return null;
+ valid.sort((a,b)=>a.lab[0]-b.lab[0]);
+ return valid[Math.floor(valid.length/2)];
+}
+function validateSkin(s){
+ let [L,a,b]=s.lab;
+ return mark(s,L>=30&&L<=92&&s.C<=65&&a>-5&&a<45&&b>-15&&b<55,
+   "skin plausibility");
+}
+function validateIris(s){
+ let [L]=s.lab;
+ return mark(s,L>=2&&L<=75&&s.C<=55,"iris plausibility");
+}
+function validateBrow(s){
+ let [L]=s.lab;
+ return mark(s,L>=2&&L<=80&&s.C<=55,"brow plausibility");
+}
+function validateHair(s, skin){
+ let [L,a,b]=s.lab;
+ let extreme=s.C>65||a<-25||a>55||b<-35||b>65;
+ let tooSkinlike=Math.abs(L-skin.lab[0])<3 && Math.abs(s.C-skin.C)<5;
+ return mark(s,!extreme&&!tooSkinlike,"hair plausibility");
+}
+
 $("measure").onclick=async()=>{
  if(!photo||!landmarker){$("measureStatus").innerHTML='<span class="warn">Choose a photo and wait for the analysis engine.</span>';return}
  try{
   const img=$("img"),work=document.createElement("canvas"),w=img.naturalWidth,h=img.naturalHeight;work.width=w;work.height=h;let ctx=work.getContext("2d",{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);
   let res=landmarker.detect(img);if(!res.faceLandmarks?.length)throw Error("No face detected. Try a clearer straight-on portrait.");let lm=res.faceLandmarks[0];
-  // Clean regions: bilateral cheeks; iris centers; brows; conservative hair candidates above/temples.
+  // Clean regions: multiple candidates; invalid samples are excluded rather than silently used.
   let lc=p(lm,234,w,h),rc=p(lm,454,w,h),le=p(lm,468,w,h),re=p(lm,473,w,h),lb=p(lm,70,w,h),rb=p(lm,300,w,h),top=p(lm,10,w,h),ltemp=p(lm,127,w,h),rtemp=p(lm,356,w,h);
   let faceW=Math.abs(rc[0]-lc[0]),rad=Math.max(4,Math.round(faceW*.035));
-  let skin1=sampleCircle(ctx,lc[0]+faceW*.17,lc[1],rad),skin2=sampleCircle(ctx,rc[0]-faceW*.17,rc[1],rad);
-  let skin={rgb:skin1.rgb.map((v,i)=>Math.round((v+skin2.rgb[i])/2)),lab:skin1.lab.map((v,i)=>(v+skin2.lab[i])/2),C:(skin1.C+skin2.C)/2};
-  let iris1=sampleCircle(ctx,le[0],le[1],Math.max(2,Math.round(rad*.45))),iris2=sampleCircle(ctx,re[0],re[1],Math.max(2,Math.round(rad*.45)));
-  let iris={rgb:iris1.rgb.map((v,i)=>Math.round((v+iris2.rgb[i])/2)),lab:iris1.lab.map((v,i)=>(v+iris2.lab[i])/2),C:(iris1.C+iris2.C)/2};
-  let brow1=sampleCircle(ctx,lb[0],lb[1],Math.max(3,Math.round(rad*.7))),brow2=sampleCircle(ctx,rb[0],rb[1],Math.max(3,Math.round(rad*.7)));
-  let brow={rgb:brow1.rgb.map((v,i)=>Math.round((v+brow2.rgb[i])/2)),lab:brow1.lab.map((v,i)=>(v+brow2.lab[i])/2),C:(brow1.C+brow2.C)/2};
-  let hr=Math.max(6,Math.round(faceW*.08)),hairA=sampleRect(ctx,top[0]-hr,Math.max(0,top[1]-hr*2.1),hr*2,hr),hairB=sampleCircle(ctx,ltemp[0]-hr*.25,ltemp[1],hr*.55),hairC=sampleCircle(ctx,rtemp[0]+hr*.25,rtemp[1],hr*.55);
-  let hairs=[hairA,hairB,hairC].sort((a,b)=>a.lab[0]-b.lab[0]),hair=hairs[1];
-  // Quality: exposure + face size. Conservative; color-cast remains diagnostic rather than automatic fail.
-  let faceRatio=faceW/w, skinL=skin.lab[0], quality=(faceRatio>=.22&&skinL>=28&&skinL<=88)?"PASS":"RETAKE";
-  // 5E-4 provisional mappings. Hair weight is controlled by answer.
-  let hw=Number($("hair").value), weightedL=(skin.lab[0]+iris.lab[0]+brow.lab[0]+hw*hair.lab[0])/(3+hw);
+
+  let skinCandidates=[
+    sampleCircle(ctx,lc[0]+faceW*.15,lc[1],rad),
+    sampleCircle(ctx,rc[0]-faceW*.15,rc[1],rad),
+    sampleCircle(ctx,lc[0]+faceW*.21,lc[1]-rad*.35,rad*.8),
+    sampleCircle(ctx,rc[0]-faceW*.21,rc[1]-rad*.35,rad*.8)
+  ].map(validateSkin);
+  let goodSkin=skinCandidates.filter(z=>z.valid);
+  if(goodSkin.length<2) throw Error("Skin sampling was not reliable enough. Use a clearer, evenly lit portrait.");
+  let skin=medianSample(goodSkin); skin.valid=true; skin.reason="validated";
+
+  let irisCandidates=[
+    sampleCircle(ctx,le[0],le[1],Math.max(2,Math.round(rad*.42))),
+    sampleCircle(ctx,re[0],re[1],Math.max(2,Math.round(rad*.42)))
+  ].map(validateIris);
+  let goodIris=irisCandidates.filter(z=>z.valid);
+  let iris=goodIris.length?medianSample(goodIris):irisCandidates[0];
+  if(!goodIris.length){iris.valid=false;iris.reason="no credible iris sample"} else {iris.valid=true;iris.reason="validated"}
+
+  let browCandidates=[
+    sampleCircle(ctx,lb[0],lb[1],Math.max(3,Math.round(rad*.62))),
+    sampleCircle(ctx,rb[0],rb[1],Math.max(3,Math.round(rad*.62)))
+  ].map(validateBrow);
+  let goodBrow=browCandidates.filter(z=>z.valid);
+  let brow=goodBrow.length?medianSample(goodBrow):browCandidates[0];
+  if(!goodBrow.length){brow.valid=false;brow.reason="no credible brow sample"} else {brow.valid=true;brow.reason="validated"}
+
+  // Hair: sample several plausible zones and reject extreme/contaminated candidates.
+  let hr=Math.max(6,Math.round(faceW*.075));
+  let hairCandidates=[
+    sampleRect(ctx,top[0]-hr*.7,Math.max(0,top[1]-hr*2.0),hr*1.4,hr*.75),
+    sampleCircle(ctx,ltemp[0]-hr*.22,ltemp[1]-hr*.10,Math.max(3,Math.round(hr*.42))),
+    sampleCircle(ctx,rtemp[0]+hr*.22,rtemp[1]-hr*.10,Math.max(3,Math.round(hr*.42))),
+    sampleCircle(ctx,top[0]-hr*.8,Math.max(hr,top[1]-hr*.7),Math.max(3,Math.round(hr*.35))),
+    sampleCircle(ctx,top[0]+hr*.8,Math.max(hr,top[1]-hr*.7),Math.max(3,Math.round(hr*.35)))
+  ].map(z=>validateHair(z,skin));
+  let goodHair=hairCandidates.filter(z=>z.valid);
+  let hair=goodHair.length?medianSample(goodHair):hairCandidates[0];
+  if(!goodHair.length){hair.valid=false;hair.reason="unreliable — excluded"} else {hair.valid=true;hair.reason=`validated (${goodHair.length}/${hairCandidates.length} candidates)`}
+
+  let faceRatio=faceW/w, skinL=skin.lab[0];
+  let coreCount=[skin,iris,brow].filter(z=>z.valid).length;
+  let quality=(faceRatio>=.22&&skinL>=28&&skinL<=88&&coreCount>=2)?"PASS":"RETAKE";
+
+  // Measurement repair: only validated regions contribute.
+  // Keep the original 5E-4 mapping frozen; repair the inputs, not the seasonal targets.
+  let requestedHairWeight=Number($("hair").value);
+  let hw=(hair.valid?requestedHairWeight:0);
+  let lParts=[skin];
+  if(iris.valid)lParts.push(iris);
+  if(brow.valid)lParts.push(brow);
+  let lNum=lParts.reduce((a,z)=>a+z.lab[0],0)+hw*hair.lab[0];
+  let lDen=lParts.length+hw;
+  let weightedL=lNum/lDen;
   let value=clamp((58-weightedL)/10);
-  let separation=((Math.abs(skin.lab[0]-iris.lab[0])+Math.abs(skin.lab[0]-brow.lab[0])+hw*Math.abs(skin.lab[0]-hair.lab[0]))/(2+hw));
+
+  let sepParts=[];
+  if(iris.valid)sepParts.push(Math.abs(skin.lab[0]-iris.lab[0]));
+  if(brow.valid)sepParts.push(Math.abs(skin.lab[0]-brow.lab[0]));
+  let sepNum=sepParts.reduce((a,z)=>a+z,0)+(hw?hw*Math.abs(skin.lab[0]-hair.lab[0]):0);
+  let sepDen=sepParts.length+(hw?hw:0);
+  let separation=sepDen?sepNum/sepDen:0;
   let contrast=clamp((separation-30)/12);
-  let weightedC=(skin.C+iris.C+brow.C+hw*hair.C)/(3+hw), chroma=clamp((weightedC-22)/7);
+
+  let cParts=[skin];
+  if(iris.valid)cParts.push(iris);
+  if(brow.valid)cParts.push(brow);
+  let cNum=cParts.reduce((a,z)=>a+z.C,0)+(hw?hw*hair.C:0);
+  let cDen=cParts.length+(hw?hw:0);
+  let weightedC=cNum/cDen;
+  let chroma=clamp((weightedC-22)/7);
+
   measurement={value,contrast,chroma,quality,samples:{skin,iris,brow,hair},weightedL,separation,weightedC};
   $("samples").innerHTML=swatch(skin,"Skin")+swatch(iris,"Iris")+swatch(brow,"Brows")+swatch(hair,"Hair");
+  let excluded=[["Skin",skin],["Iris",iris],["Brows",brow],["Hair",hair]].filter(([n,z])=>!z.valid).map(([n])=>n);
+  $("sampleDiag").innerHTML=excluded.length
+    ? `<span class="warn">⚠ EXCLUDED:</span> ${excluded.join(", ")}. Measurements were renormalized without those regions.`
+    : `<span class="pass">✓ ALL FOUR REGIONS VALIDATED.</span> Only validated samples contributed.`;
   $("mv").textContent=(value>=0?"+":"")+value.toFixed(2);$("mc").textContent=(chroma>=0?"+":"")+chroma.toFixed(2);$("mx").textContent=(contrast>=0?"+":"")+contrast.toFixed(2);
   $("quality").innerHTML=quality==="PASS"?`<span class="pass">✓ PHOTO QUALITY PASS.</span> Face detected; exposure and face size are usable.`:`<span class="warn">⚠ RETAKE.</span> Exposure or face size is outside the calibration gate. Seasonal scoring remains locked.`;
   if(quality==="PASS"){$("score").disabled=false;$("questionCard").classList.remove("locked");$("measureStatus").innerHTML=`<span class="pass">✓ MEASUREMENT COMPLETE.</span> Weighted L*: ${weightedL.toFixed(1)} · feature separation: ${separation.toFixed(1)} · weighted C*: ${weightedC.toFixed(1)}`}
@@ -146,8 +235,8 @@ $("score").onclick=()=>{
  $("scoreStatus").innerHTML='<span class="pass">✓ PHOTO + QUESTION FUSION COMPLETE.</span> Profile: '+p.map(v=>(v>=0?"+":"")+v.toFixed(2)).join(" · ");$("save").disabled=false;
 };
 function render(){$("log").innerHTML=records.map(r=>`<tr><td>${r.tester}</td><td>${r.quality}</td><td>${r.p[0].toFixed(2)}</td><td>${r.p[1].toFixed(2)}</td><td>${r.p[2].toFixed(2)}</td><td>${r.p[3].toFixed(2)}</td><td>${r.primary}</td><td>${r.runner}</td><td>${r.secondary}</td><td>${r.temp?"FLAG":"—"}</td><td>${r.expected||"Unknown"}</td><td>${r.reaction}</td></tr>`).join("")}
-$("save").onclick=()=>{if(!current)return;records.push({tester:$("tester").value||"Tester",quality:current.quality,p:current.p,primary:current.pri.n,runner:current.run.n,secondary:current.sec.n,temp:current.temp,expected:$("expected").value,reaction:$("reaction").value});localStorage.setItem("cs5e81",JSON.stringify(records));render();$("tester").value="Tester "+String(records.length+1).padStart(2,"0");$("save").disabled=true}
-$("clear").onclick=()=>{if(confirm("Clear this browser's 5E-8.1 calibration log?")){records=[];localStorage.removeItem("cs5e81");render()}}
-$("csv").onclick=()=>{let h=["Tester","Quality","Temperature","Value","Chroma","Contrast","Primary","RunnerUp","AdjacentSecondary","TemperatureFlag","Expected","Reaction"],rows=records.map(r=>[r.tester,r.quality,...r.p,r.primary,r.runner,r.secondary,r.temp?"FLAG":"",r.expected,r.reaction]),esc=v=>'"'+String(v??"").replaceAll('"','""')+'"',csv=[h,...rows].map(a=>a.map(esc).join(",")).join("\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="color_snapshot_5E8_1_calibration_log.csv";a.click()}
+$("save").onclick=()=>{if(!current)return;records.push({tester:$("tester").value||"Tester",quality:current.quality,p:current.p,primary:current.pri.n,runner:current.run.n,secondary:current.sec.n,temp:current.temp,expected:$("expected").value,reaction:$("reaction").value});localStorage.setItem("cs5e82",JSON.stringify(records));render();$("tester").value="Tester "+String(records.length+1).padStart(2,"0");$("save").disabled=true}
+$("clear").onclick=()=>{if(confirm("Clear this browser's 5E-8.2 calibration log?")){records=[];localStorage.removeItem("cs5e82");render()}}
+$("csv").onclick=()=>{let h=["Tester","Quality","Temperature","Value","Chroma","Contrast","Primary","RunnerUp","AdjacentSecondary","TemperatureFlag","Expected","Reaction"],rows=records.map(r=>[r.tester,r.quality,...r.p,r.primary,r.runner,r.secondary,r.temp?"FLAG":"",r.expected,r.reaction]),esc=v=>'"'+String(v??"").replaceAll('"','""')+'"',csv=[h,...rows].map(a=>a.map(esc).join(",")).join("\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="color_snapshot_5E8_2_calibration_log.csv";a.click()}
 render();
 </script></body></html>
