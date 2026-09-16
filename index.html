@@ -1,51 +1,116 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot — 5E-7 Calibration & Guardrails</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Color Snapshot — 5E-8 Calibration Test Bench</title>
 <style>
-:root{--cream:#f5f0e7;--red:#d95335;--ink:#302f2d;--muted:#746f69;--line:#d8d0c5;--green:#2f6948;--amber:#9a641a}
-*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,sans-serif}main{max-width:1160px;margin:auto;padding:32px 22px 60px}
-header{text-align:center}.logo{font:46px Georgia;color:var(--red);letter-spacing:.14em}.tag{font-size:10px;letter-spacing:.2em}h1{font:30px Georgia;margin:25px 0 6px}.sub,.note{color:var(--muted)}
-.panel{max-width:980px;margin:25px auto 0;border-top:1px solid var(--line);padding-top:17px}.profile{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.field{border:1px solid var(--line);background:#fff8;padding:9px}
-.field label{font-size:10px;font-weight:bold;display:block}.field input{width:100%;font:20px Georgia;padding:5px;border:1px solid var(--line);margin-top:5px}
-button{width:100%;padding:14px;border:0;background:var(--red);color:white;font-weight:bold;letter-spacing:.05em;margin-top:12px}.status,.box{border:1px solid var(--line);background:#fff8;padding:11px;margin-top:10px;font-size:12px}.ok{color:var(--green);font-weight:bold}
-.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.eyebrow{font-size:9px;letter-spacing:.12em;color:var(--muted);font-weight:bold}.season{font:26px Georgia;margin:4px 0}.flag{display:inline-block;padding:3px 6px;border:1px solid var(--line);font-size:10px;margin:2px 2px 2px 0}.warn{color:var(--amber);font-weight:bold}.pass{color:var(--green);font-weight:bold}
-h2{font:19px Georgia;border-bottom:1px solid var(--line);padding-bottom:5px;margin:18px 0 6px}table{width:100%;border-collapse:collapse;background:#fff8}th,td{padding:8px;border-bottom:1px solid var(--line);font-size:11px;text-align:left;vertical-align:top}th{font-size:9px;letter-spacing:.08em;color:var(--muted)}
-.contrib{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.pill{border:1px solid var(--line);padding:4px;font-size:10px}.note{font-size:11px;line-height:1.45;margin-top:12px}
-@media(max-width:800px){.profile,.summary{grid-template-columns:1fr 1fr}.contrib{grid-template-columns:1fr 1fr}}
-</style></head><body><main>
-<header><div class="logo">ŌRA</div><div class="tag">ORIGINAL. ROOTED. AUTHENTIC.</div><h1>Color Snapshot — Calibration & Guardrails</h1>
-<div class="sub">Step 5E-7: inspect why seasons rank where they do before freezing the scoring model.</div></header>
-<section class="panel">
-<div class="profile">
-<div class="field"><label>TEMPERATURE · −3 cool / +3 warm</label><input id="t" type="number" step=".01" min="-3" max="3" value="-1.50"></div>
-<div class="field"><label>VALUE · −3 light / +3 deep</label><input id="v" type="number" step=".01" min="-3" max="3" value="1.16"></div>
-<div class="field"><label>CHROMA · −3 muted / +3 bright</label><input id="c" type="number" step=".01" min="-3" max="3" value="-0.78"></div>
-<div class="field"><label>CONTRAST · −3 low / +3 high</label><input id="x" type="number" step=".01" min="-3" max="3" value="0.34"></div>
-</div><button id="run">RUN CALIBRATION CHECK ✦</button><div class="status" id="status"><span class="ok">✓ 5E-6 profile loaded.</span></div>
-<div id="out">
-<div class="summary">
-<div class="box"><div class="eyebrow">RAW PRIMARY</div><div class="season" id="primary"></div><div id="pmeta"></div></div>
-<div class="box"><div class="eyebrow">RAW MATHEMATICAL RUNNER-UP</div><div class="season" id="runner"></div><div id="rmeta"></div></div>
-<div class="box"><div class="eyebrow">LOGICAL ADJACENT SECONDARY</div><div class="season" id="secondary"></div><div id="smeta"></div></div>
+:root{--cream:#f5f0e7;--paper:#fbf8f2;--red:#db5335;--ink:#302d2a;--muted:#746e68;--line:#d8d0c5;--green:#286b49;--amber:#996317}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,sans-serif}main{max-width:1220px;margin:auto;padding:28px 22px 60px}
+header{text-align:center}.logo{font:44px Georgia;color:var(--red);letter-spacing:.14em}.tag{font-size:9px;letter-spacing:.22em}h1{font:30px Georgia;margin:22px 0 5px}.sub,.small{color:var(--muted)}
+.grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;margin-top:25px}.card{background:#fff8;border:1px solid var(--line);padding:14px}.photo{aspect-ratio:4/3;background:#ddd;display:flex;align-items:center;justify-content:center;overflow:hidden}.photo img{max-width:100%;max-height:100%;display:none}
+label{font-size:11px;font-weight:bold;display:block;margin:10px 0 4px}input,select{width:100%;padding:8px;border:1px solid var(--line);background:white}
+button{border:0;background:var(--red);color:white;font-weight:bold;padding:12px 14px;cursor:pointer}.wide{width:100%;margin-top:12px}.secondary{background:white;color:var(--ink);border:1px solid var(--line)}
+.status{padding:10px;border:1px solid var(--line);margin-top:10px;font-size:12px}.pass{color:var(--green);font-weight:bold}.warn{color:var(--amber);font-weight:bold}
+h2{font:20px Georgia;border-bottom:1px solid var(--line);padding-bottom:6px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.metric{border:1px solid var(--line);padding:8px;background:var(--paper)}.metric b{font:22px Georgia}
+.q{border-top:1px solid var(--line);padding-top:8px;margin-top:8px}.q label{font-size:12px}.results{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.result{border:1px solid var(--line);padding:10px;background:var(--paper)}.season{font:22px Georgia}
+table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td{border-bottom:1px solid var(--line);padding:7px;font-size:10px;text-align:left}th{color:var(--muted);font-size:9px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.actions button{flex:1}.note{font-size:11px;line-height:1.45;color:var(--muted)}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.metrics,.results{grid-template-columns:1fr 1fr}}
+</style></head>
+<body><main>
+<header><div class="logo">ŌRA</div><div class="tag">ORIGINAL. ROOTED. AUTHENTIC.</div>
+<h1>Color Snapshot — Calibration Test Bench</h1>
+<div class="sub">Step 5E-8: run multiple test faces through one frozen measurement + scoring workflow and compare patterns.</div></header>
+
+<div class="grid">
+<section>
+<div class="card">
+<label>Tester ID</label><input id="tester" value="Tester 01">
+<label>Choose test photograph</label><input id="file" type="file" accept="image/*">
+<div class="photo"><img id="img"><span id="placeholder">No photograph selected</span></div>
+<label>Photo quality review</label>
+<select id="quality"><option value="PASS">PASS — clear, even, usable</option><option value="RETAKE">RETAKE — unreliable photo</option></select>
+<label>Quality note</label><select id="qnote"><option>None</option><option>Uneven / harsh lighting</option><option>Strong color cast</option><option>Face too small / poorly positioned</option><option>Glasses / obstruction</option><option>Heavy makeup may affect skin reading</option><option>Background / clothing contamination risk</option></select>
+<label>Is visible hair close to natural color?</label><select id="hair"><option value="1">Yes</option><option value=".35">Partially — highlights, gray, etc.</option><option value="0">No — significantly different</option></select>
+<label>Makeup level</label><select id="makeup"><option value="1">None / minimal</option><option value=".8">Some</option><option value=".55">Full</option></select>
 </div>
-<h2>Guardrail review</h2><div id="guards"></div>
-<h2>Why the top candidates ranked this way</h2>
-<table><thead><tr><th>Rank</th><th>Season</th><th>Distance</th><th>Dimension contributions to squared distance</th><th>Guardrail</th></tr></thead><tbody id="rows"></tbody></table>
-<p class="note"><b>Important:</b> guardrails in 5E-7 are diagnostic flags, not hidden score changes. They do not alter the ranking. A temperature-direction conflict is flagged only when the measured profile is meaningfully cool/warm (|Temperature| ≥ 1.0), the season target is meaningfully on the opposite side (|target| ≥ 0.8), and the directions disagree. This lets us identify suspicious candidates without forcing a preferred result.</p>
-</div></section></main>
+
+<div class="card" style="margin-top:12px">
+<h2>Photo measurements</h2>
+<p class="note">Enter the four-dimensional values produced by the current 5E-5 measurement/fusion workflow. This bench deliberately keeps those formulas frozen while we compare testers.</p>
+<div class="metrics">
+<div class="metric"><label>Temperature</label><input id="t" type="number" min="-3" max="3" step=".01" value="0"><small>−3 cool / +3 warm</small></div>
+<div class="metric"><label>Value</label><input id="v" type="number" min="-3" max="3" step=".01" value="0"><small>−3 light / +3 deep</small></div>
+<div class="metric"><label>Chroma</label><input id="c" type="number" min="-3" max="3" step=".01" value="0"><small>−3 muted / +3 bright</small></div>
+<div class="metric"><label>Contrast</label><input id="x" type="number" min="-3" max="3" step=".01" value="0"><small>−3 low / +3 high</small></div>
+</div>
+</div>
+</section>
+
+<section>
+<div class="card">
+<h2>Four guided questions</h2>
+<div class="q"><label>1. Which metal tends to look best?</label><select id="q1"><option value="na">Not sure</option><option value="2">Gold</option><option value="-2">Silver</option><option value="0">Both</option></select></div>
+<div class="q"><label>2. Which color family makes the face look healthier?</label><select id="q2"><option value="na">Not sure</option><option value="3">Warm earthy — coral, camel, olive, rust</option><option value="-3">Cool fresh — rose, berry, blue, lavender</option><option value="0">Both</option></select></div>
+<div class="q"><label>3. Which colors feel most naturally you?</label><select id="q3"><option value="na">Not sure</option><option value="-3">Soft / blended</option><option value="3">Clear / vibrant</option><option value="0">Somewhere between</option></select></div>
+<div class="q"><label>4. Natural contrast?</label><select id="q4"><option value="na">Not sure</option><option value="-2">Features blend softly</option><option value="0">Noticeable difference</option><option value="2">Strong light / dark difference</option></select></div>
+<button class="wide" id="score">CALCULATE + SCORE TESTER ✦</button><div class="status" id="status">Ready for a tester.</div>
+</div>
+
+<div class="card" style="margin-top:12px">
+<h2>Scoring result</h2>
+<div class="results">
+<div class="result"><small>PRIMARY</small><div class="season" id="primary">—</div><div id="pd">—</div></div>
+<div class="result"><small>RAW RUNNER-UP</small><div class="season" id="runner">—</div><div id="rd">—</div></div>
+<div class="result"><small>ADJACENT SECONDARY</small><div class="season" id="secondary">—</div><div id="sd">—</div></div>
+</div>
+<div class="status" id="guard">Guardrails will appear here.</div>
+<label>Known / expected season (optional — do not guess)</label>
+<select id="expected"><option value="">Unknown</option><option>Light Spring</option><option>Warm Spring</option><option>Bright Spring</option><option>Light Summer</option><option>Cool Summer</option><option>Soft Summer</option><option>Soft Autumn</option><option>Warm Autumn</option><option>Deep Autumn</option><option>Deep Winter</option><option>Cool Winter</option><option>Bright Winter</option></select>
+<label>Human reaction</label><select id="reaction"><option>Not recorded</option><option>Yes — feels accurate</option><option>Mostly</option><option>No</option></select>
+<button class="wide" id="save">SAVE TESTER TO CALIBRATION LOG</button>
+</div>
+</section>
+</div>
+
+<section class="card" style="margin-top:18px">
+<h2>Calibration log</h2>
+<div class="actions"><button id="csv">DOWNLOAD CSV</button><button id="clear" class="secondary">CLEAR SESSION LOG</button></div>
+<table><thead><tr><th>Tester</th><th>Quality</th><th>T</th><th>V</th><th>C</th><th>X</th><th>Primary</th><th>Runner-up</th><th>Adjacent</th><th>Temp flag</th><th>Expected</th><th>Reaction</th></tr></thead><tbody id="log"></tbody></table>
+<p class="note">The calibration log is stored only in this browser session/local storage for testing. Selected photographs are not placed in the log and are not uploaded by this page. The CSV contains measurements and labels only.</p>
+</section>
+</main>
 <script>
 const targets={"Light Spring":[1.5,-2.5,1,-1],"Warm Spring":[2.7,-1,1.5,0],"Bright Spring":[1,0,2.7,2],"Light Summer":[-1,-2.5,-.8,-1.8],"Cool Summer":[-2.7,-.5,-.5,-.3],"Soft Summer":[-.8,0,-2.7,-1.5],"Soft Autumn":[.8,.3,-2.7,-1],"Warm Autumn":[2.7,.8,-1,0],"Deep Autumn":[1,2.5,-.8,1],"Deep Winter":[-.8,2.5,.8,2],"Cool Winter":[-2.7,.7,1.5,1.5],"Bright Winter":[-1,0,2.8,2.7]};
 const weights={"Light Spring":[.2,.35,.25,.2],"Light Summer":[.2,.35,.2,.25],"Warm Spring":[.35,.2,.25,.2],"Warm Autumn":[.35,.2,.25,.2],"Cool Summer":[.35,.2,.25,.2],"Cool Winter":[.35,.15,.25,.25],"Soft Summer":[.25,.15,.35,.25],"Soft Autumn":[.25,.15,.35,.25],"Bright Spring":[.25,.15,.3,.3],"Bright Winter":[.25,.15,.3,.3],"Deep Autumn":[.2,.35,.2,.25],"Deep Winter":[.2,.35,.2,.25]};
 const adj={"Light Spring":["Light Summer","Warm Spring"],"Warm Spring":["Light Spring","Bright Spring","Warm Autumn"],"Bright Spring":["Warm Spring","Bright Winter"],"Light Summer":["Light Spring","Cool Summer","Soft Summer"],"Cool Summer":["Light Summer","Soft Summer","Cool Winter"],"Soft Summer":["Cool Summer","Soft Autumn","Light Summer"],"Soft Autumn":["Soft Summer","Warm Autumn","Deep Autumn"],"Warm Autumn":["Soft Autumn","Deep Autumn","Warm Spring"],"Deep Autumn":["Warm Autumn","Deep Winter","Soft Autumn"],"Deep Winter":["Deep Autumn","Cool Winter","Bright Winter"],"Cool Winter":["Cool Summer","Deep Winter","Bright Winter"],"Bright Winter":["Bright Spring","Cool Winter","Deep Winter"]};
-const $=x=>document.getElementById(x),cl=v=>Math.max(-3,Math.min(3,Number(v))),names=["Temperature","Value","Chroma","Contrast"];
-function calc(n,p){let q=targets[n],w=weights[n],parts=p.map((a,i)=>w[i]*(a-q[i])**2);return{n,parts,d:Math.sqrt(parts.reduce((a,b)=>a+b,0))}}
-function tempConflict(n,p){let pt=p[0],st=targets[n][0];return Math.abs(pt)>=1&&Math.abs(st)>=.8&&Math.sign(pt)!==Math.sign(st)}
-function run(){let p=[cl($("t").value),cl($("v").value),cl($("c").value),cl($("x").value)],all=Object.keys(targets).map(n=>calc(n,p)).sort((a,b)=>a.d-b.d),pri=all[0],runner=all[1],sec=adj[pri.n].map(n=>calc(n,p)).sort((a,b)=>a.d-b.d)[0];
-$("primary").textContent=pri.n;$("pmeta").innerHTML=`Distance <b>${pri.d.toFixed(3)}</b>`;
-$("runner").textContent=runner.n;$("rmeta").innerHTML=`Distance <b>${runner.d.toFixed(3)}</b>${adj[pri.n].includes(runner.n)?' · also logically adjacent':' · not in primary adjacency set'}`;
-$("secondary").textContent=sec.n;$("smeta").innerHTML=`Distance <b>${sec.d.toFixed(3)}</b> · closest approved adjacent`;
-let conflicts=all.filter(z=>tempConflict(z.n,p)),primaryConflict=tempConflict(pri.n,p),runnerMismatch=runner.n!==sec.n;
-$("guards").innerHTML=`<div class="box">${primaryConflict?'<span class="warn">⚠ Primary temperature-direction conflict.</span>':'<span class="pass">✓ Primary passes temperature-direction guardrail.</span>'}<br>${runnerMismatch?`<span class="warn">⚠ Raw runner-up (${runner.n}) differs from logical adjacent secondary (${sec.n}).</span>`:'<span class="pass">✓ Raw runner-up and logical adjacent secondary agree.</span>'}<br>${conflicts.length?`Opposite-temperature candidates flagged in full ranking: <b>${conflicts.map(z=>z.n).join(", ")}</b>.`:'No opposite-temperature candidates triggered the diagnostic threshold.'}</div>`;
-$("rows").innerHTML=all.slice(0,6).map((z,i)=>{let total=z.parts.reduce((a,b)=>a+b,0);let parts=z.parts.map((a,j)=>`<span class="pill">${names[j]} ${(total?100*a/total:0).toFixed(0)}%</span>`).join("");return `<tr><td>${i+1}</td><td><b>${z.n}</b>${z.n===pri.n?' · PRIMARY':z.n===runner.n?' · RAW RUNNER-UP':z.n===sec.n?' · ADJACENT SECONDARY':''}</td><td>${z.d.toFixed(3)}</td><td><div class="contrib">${parts}</div></td><td>${tempConflict(z.n,p)?'<span class="warn">⚠ opposite temp direction</span>':'<span class="pass">✓ no temp conflict</span>'}</td></tr>`}).join("");
-$("status").innerHTML='<span class="ok">✓ CALIBRATION CHECK COMPLETE.</span> Ranking is unchanged; diagnostics are now visible.'}
-$("run").onclick=run;run();
+const $=id=>document.getElementById(id), clamp=n=>Math.max(-3,Math.min(3,Number(n)));
+let current=null, records=JSON.parse(localStorage.getItem("cs5e8")||"[]");
+$("file").onchange=e=>{let f=e.target.files[0];if(!f)return;let u=URL.createObjectURL(f);$("img").src=u;$("img").style.display="block";$("placeholder").style.display="none"};
+function avg(vals){let a=vals.filter(v=>v!=="na").map(Number);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null}
+function fuse(){
+ let pt=clamp($("t").value), pv=clamp($("v").value), pc=clamp($("c").value), px=clamp($("x").value);
+ let qt=avg([$ ("q1").value,$("q2").value]), qc=$("q3").value==="na"?null:Number($("q3").value), qx=$("q4").value==="na"?null:Number($("q4").value);
+ // Renormalize only when question evidence exists; "Not sure" does not pull toward zero.
+ let t=qt===null?pt:(.45*pt+.55*qt);
+ let c=qc===null?pc:(.60*pc+.40*qc);
+ let x=qx===null?px:(.80*px+.20*qx);
+ return [clamp(t),pv,clamp(c),clamp(x)];
+}
+function dist(n,p){let q=targets[n],w=weights[n];return Math.sqrt(p.reduce((s,a,i)=>s+w[i]*(a-q[i])**2,0))}
+function conflict(n,p){let a=p[0],b=targets[n][0];return Math.abs(a)>=1&&Math.abs(b)>=.8&&Math.sign(a)!==Math.sign(b)}
+function calculate(){
+ if($("quality").value==="RETAKE"){$("status").innerHTML='<span class="warn">⚠ RETAKE REQUIRED.</span> This photograph should not receive a seasonal result.';current=null;return}
+ let p=fuse(), all=Object.keys(targets).map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d), pri=all[0],run=all[1],sec=adj[pri.n].map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d)[0];
+ current={p,pri,run,sec,temp:conflict(pri.n,p)};
+ $("primary").textContent=pri.n;$("pd").textContent="Distance "+pri.d.toFixed(3);$("runner").textContent=run.n;$("rd").textContent="Distance "+run.d.toFixed(3);$("secondary").textContent=sec.n;$("sd").textContent="Distance "+sec.d.toFixed(3);
+ $("status").innerHTML='<span class="pass">✓ TESTER SCORED.</span> Four-dimensional profile: '+p.map(v=>(v>=0?"+":"")+v.toFixed(2)).join(" · ");
+ $("guard").innerHTML=(conflict(pri.n,p)?'<span class="warn">⚠ Primary has opposite temperature-direction conflict.</span>':'<span class="pass">✓ Primary passes temperature-direction guardrail.</span>')+(run.n!==sec.n?` Raw runner-up (${run.n}) differs from logical adjacent (${sec.n}).`:" Raw runner-up is also logically adjacent.");
+}
+$("score").onclick=calculate;
+function render(){ $("log").innerHTML=records.map(r=>`<tr><td>${r.tester}</td><td>${r.quality}</td><td>${r.p[0].toFixed(2)}</td><td>${r.p[1].toFixed(2)}</td><td>${r.p[2].toFixed(2)}</td><td>${r.p[3].toFixed(2)}</td><td>${r.primary}</td><td>${r.runner}</td><td>${r.secondary}</td><td>${r.temp?"FLAG":"—"}</td><td>${r.expected||"Unknown"}</td><td>${r.reaction}</td></tr>`).join("")}
+$("save").onclick=()=>{if(!current){$("status").innerHTML='<span class="warn">Calculate a valid tester first.</span>';return}records.push({tester:$("tester").value||("Tester "+(records.length+1)),quality:$("quality").value,p:current.p,primary:current.pri.n,runner:current.run.n,secondary:current.sec.n,temp:current.temp,expected:$("expected").value,reaction:$("reaction").value});localStorage.setItem("cs5e8",JSON.stringify(records));render();$("tester").value="Tester "+String(records.length+1).padStart(2,"0")}
+$("clear").onclick=()=>{if(confirm("Clear the calibration log stored in this browser?")){records=[];localStorage.removeItem("cs5e8");render()}}
+$("csv").onclick=()=>{let h=["Tester","Quality","Temperature","Value","Chroma","Contrast","Primary","RunnerUp","AdjacentSecondary","TemperatureFlag","Expected","Reaction"],rows=records.map(r=>[r.tester,r.quality,...r.p,r.primary,r.runner,r.secondary,r.temp?"FLAG":"",r.expected,r.reaction]);let esc=v=>'"'+String(v??"").replaceAll('"','""')+'"',csv=[h,...rows].map(a=>a.map(esc).join(",")).join("\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="color_snapshot_5E8_calibration_log.csv";a.click()}
+render();
 </script></body></html>
