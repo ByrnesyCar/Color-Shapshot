@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot — 5E-8.4 Hybrid Attribute Calibration</title>
+<title>Color Snapshot — 5E-8.5 Hybrid Fusion Calibration</title>
 <style>
 :root{--cream:#f5f0e7;--paper:#fbf8f2;--red:#db5335;--ink:#302d2a;--muted:#746e68;--line:#d8d0c5;--green:#286b49;--amber:#996317;--blue:#2867a8;--purple:#7650b5}
 *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,sans-serif}main{max-width:1240px;margin:auto;padding:28px 22px 60px}
@@ -15,7 +15,7 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 </style></head><body><main>
 <header><div class="logo">ŌRA</div><div class="tag">ORIGINAL. ROOTED. AUTHENTIC.</div>
 <h1>Color Snapshot — Integrated Calibration Test Bench</h1>
-<div class="sub">Step 5E-8.4: photo measures skin + validated brows; host supplies natural hair and eye attributes; guided questions complete the four-dimensional profile.</div></header>
+<div class="sub">Step 5E-8.5: photo measures skin depth + validated brows; natural hair and eye attributes are supplied explicitly; guided questions drive temperature, chroma, and contrast.</div></header>
 
 <div class="grid">
 <section>
@@ -71,7 +71,7 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 <h2>Calibration data capture</h2>
 <div class="metrics">
 <div class="metric">PHOTO VALUE<br><b id="capPV">—</b></div>
-<div class="metric">PHOTO CHROMA<br><b id="capPC">—</b></div>
+<div class="metric">SKIN C* DIAG.<br><b id="capPC">—</b></div>
 <div class="metric">PHOTO CONTRAST<br><b id="capPX">—</b></div>
 <div class="metric">FUSED TEMP<br><b id="capFT">—</b></div>
 </div>
@@ -89,13 +89,13 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 
 <section class="card" style="margin-top:18px"><h2>Calibration log</h2>
 <div class="actions"><button id="csv">DOWNLOAD CSV</button><button id="clear" class="secondary">CLEAR SESSION LOG</button></div>
-<table><thead><tr><th>Tester</th><th>Quality</th><th>Photo V</th><th>Photo C</th><th>Photo X</th><th>Fused T</th><th>Fused V</th><th>Fused C</th><th>Fused X</th><th>Primary</th><th>Runner-up</th><th>Adjacent</th><th>Expected</th></tr></thead><tbody id="log"></tbody></table>
-<p class="note">Selected portraits are read in the browser and are not written to this calibration log. The log/CSV contains validation flags, raw photo measurements, questionnaire responses, fused dimensions, distances, and result labels — never the photograph itself. MediaPipe model resources are loaded remotely by the page.</p></section>
+<table><thead><tr><th>Tester</th><th>Quality</th><th>Photo V</th><th>Skin C*</th><th>Photo X</th><th>Fused T</th><th>Fused V</th><th>Fused C</th><th>Fused X</th><th>Primary</th><th>Runner-up</th><th>Adjacent</th><th>Expected</th></tr></thead><tbody id="log"></tbody></table>
+<p class="note">Selected portraits are read in the browser and are not written to this calibration log. The log/CSV contains validation flags, skin L*/C* diagnostics, raw depth/contrast measurements, questionnaire responses, fused dimensions, distances, and result labels — never the photograph itself. Skin C* is recorded for diagnostics only and does not drive seasonal chroma. MediaPipe model resources are loaded remotely by the page.</p></section>
 
 <script type="module">
 import {FaceLandmarker,FilesetResolver} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 const $=id=>document.getElementById(id), clamp=n=>Math.max(-3,Math.min(3,n));
-let landmarker=null, photo=null, measurement=null, current=null, records=JSON.parse(localStorage.getItem("cs5e84")||"[]");
+let landmarker=null, photo=null, measurement=null, current=null, records=JSON.parse(localStorage.getItem("cs5e85")||"[]");
 
 async function init(){
  try{
@@ -206,10 +206,10 @@ $("measure").onclick=async()=>{
   let range=Math.max(...naturalDepths)-Math.min(...naturalDepths);
   let contrast=clamp((range-2.2)*1.15);
 
-  // CHROMA photo contribution: skin C* only, deliberately conservative.
-  // Eye/hair color saturation is not inferred from pixels in hybrid mode.
+  // Skin C* is retained for diagnostics only. It does NOT determine seasonal chroma.
+  // Seasonal chroma is established during fusion from Q3, with eye clarity as a small corroborating cue.
   let weightedC=skin.C;
-  let chroma=clamp((weightedC-22)/9);
+  let chroma=0;
 
   let weightedL=skin.lab[0], separation=range;
   measurement={
@@ -245,7 +245,15 @@ $("score").onclick=()=>{
  if(qt===null) t=clamp(hairTemp*.75);
  else t=clamp(.85*qt+.15*hairTemp);
  let v=measurement.value;
- let c=qc===null?measurement.chroma:clamp(.55*measurement.chroma+.45*qc);
+
+ // 5E-8.5 CHROMA FUSION:
+ // Q3 is the primary seasonal-chroma evidence.
+ // Eye clarity/depth is a modest corroborating cue; skin C* is diagnostic only.
+ let eyeClarity=Number($("eyeDepth").value); // -1 light/soft, 0 medium/not sure, +1 deep/clear
+ let c;
+ if(qc===null) c=clamp(eyeClarity*.75);
+ else c=clamp(.85*qc + .15*eyeClarity);
+
  let x=qx===null?measurement.contrast:clamp(.75*measurement.contrast+.25*qx);
  let p=[t,v,c,x];
  let all=Object.keys(targets).map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d),pri=all[0],run=all[1],sec=adj[pri.n].map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d)[0];
@@ -253,7 +261,7 @@ $("score").onclick=()=>{
    p,pri,run,sec,temp:conflict(pri.n,p),quality:measurement.quality,
    photo:{value:measurement.value,chroma:measurement.chroma,contrast:measurement.contrast,
           weightedL:measurement.weightedL,weightedC:measurement.weightedC,separation:measurement.separation,
-          skinDepth:measurement.skinDepth},
+          skinDepth:measurement.skinDepth,skinC:measurement.weightedC},
    questions:{q1:$("q1").value,q2:$("q2").value,q3:$("q3").value,q4:$("q4").value},
    validation:{
      skin:measurement.samples.skin.valid!==false,
@@ -269,7 +277,7 @@ $("score").onclick=()=>{
  $("guard").innerHTML=(current.temp?'<span class="warn">⚠ Primary has opposite temperature-direction conflict.</span>':'<span class="pass">✓ Primary passes temperature-direction guardrail.</span>')+(run.n!==sec.n?` Raw runner-up (${run.n}) differs from logical adjacent (${sec.n}).`:" Raw runner-up is also logically adjacent.");
  $("scoreStatus").innerHTML='<span class="pass">✓ PHOTO + QUESTION FUSION COMPLETE.</span> Profile: '+p.map(v=>(v>=0?"+":"")+v.toFixed(2)).join(" · ");
  $("capPV").textContent=(measurement.value>=0?"+":"")+measurement.value.toFixed(2);
- $("capPC").textContent=(measurement.chroma>=0?"+":"")+measurement.chroma.toFixed(2);
+ $("capPC").textContent=measurement.weightedC.toFixed(1);
  $("capPX").textContent=(measurement.contrast>=0?"+":"")+measurement.contrast.toFixed(2);
  $("capFT").textContent=(t>=0?"+":"")+t.toFixed(2);
  $("captureDiag").innerHTML=`Captured: Q1 ${$("q1").options[$("q1").selectedIndex].text} · Q2 ${$("q2").options[$("q2").selectedIndex].text} · Q3 ${$("q3").options[$("q3").selectedIndex].text} · Q4 ${$("q4").options[$("q4").selectedIndex].text}`;
@@ -278,7 +286,7 @@ $("score").onclick=()=>{
 function render(){
  $("log").innerHTML=records.map(r=>`<tr>
  <td>${r.tester}</td><td>${r.quality}</td>
- <td>${r.photo?.value?.toFixed(2)??"—"}</td><td>${r.photo?.chroma?.toFixed(2)??"—"}</td><td>${r.photo?.contrast?.toFixed(2)??"—"}</td>
+ <td>${r.photo?.value?.toFixed(2)??"—"}</td><td>${r.photo?.skinC?.toFixed(1)??r.photo?.weightedC?.toFixed(1)??"—"}</td><td>${r.photo?.contrast?.toFixed(2)??"—"}</td>
  <td>${r.p[0].toFixed(2)}</td><td>${r.p[1].toFixed(2)}</td><td>${r.p[2].toFixed(2)}</td><td>${r.p[3].toFixed(2)}</td>
  <td>${r.primary}</td><td>${r.runner}</td><td>${r.secondary}</td><td>${r.expected||"Unknown"}</td></tr>`).join("")
 }
@@ -303,13 +311,13 @@ $("save").onclick=()=>{if(!current)return;records.push({
  temp:current.temp,
  expected:$("expected").value,
  reaction:$("reaction").value
-});localStorage.setItem("cs5e84",JSON.stringify(records));render();$("tester").value="Tester "+String(records.length+1).padStart(2,"0");$("save").disabled=true}
-$("clear").onclick=()=>{if(confirm("Clear this browser's 5E-8.4 calibration log?")){records=[];localStorage.removeItem("cs5e84");render()}}
+});localStorage.setItem("cs5e85",JSON.stringify(records));render();$("tester").value="Tester "+String(records.length+1).padStart(2,"0");$("save").disabled=true}
+$("clear").onclick=()=>{if(confirm("Clear this browser's 5E-8.5 calibration log?")){records=[];localStorage.removeItem("cs5e85");render()}}
 $("csv").onclick=()=>{
  let h=[
  "Tester","Quality","NaturalHairDepth","HairUndertone","EyeColor","EyeDepthClarity","MakeupSetting",
  "SkinUsed","BrowUsed",
- "PhotoValue","PhotoChroma","PhotoContrast","WeightedL","WeightedC","FeatureSeparation",
+ "PhotoValue","PhotoChromaAxis_UNUSED","PhotoContrast","SkinL","SkinC_DIAGNOSTIC_ONLY","FeatureSeparation",
  "Q1_Metal","Q2_ColorFamily","Q3_ChromaPreference","Q4_Contrast",
  "FusedTemperature","FusedValue","FusedChroma","FusedContrast",
  "Primary","PrimaryDistance","RunnerUp","RunnerUpDistance","AdjacentSecondary","AdjacentDistance",
@@ -327,7 +335,7 @@ $("csv").onclick=()=>{
  csv=[h,...rows].map(a=>a.map(esc).join(",")).join("\n"),
  a=document.createElement("a");
  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
- a.download="color_snapshot_5E8_4_hybrid_calibration_data.csv";
+ a.download="color_snapshot_5E8_5_hybrid_fusion_calibration.csv";
  a.click()
 }
 render();
