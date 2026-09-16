@@ -1,116 +1,153 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot — 5E-8 Calibration Test Bench</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Color Snapshot — 5E-8.1 Integrated Calibration Test Bench</title>
 <style>
-:root{--cream:#f5f0e7;--paper:#fbf8f2;--red:#db5335;--ink:#302d2a;--muted:#746e68;--line:#d8d0c5;--green:#286b49;--amber:#996317}
-*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,sans-serif}main{max-width:1220px;margin:auto;padding:28px 22px 60px}
-header{text-align:center}.logo{font:44px Georgia;color:var(--red);letter-spacing:.14em}.tag{font-size:9px;letter-spacing:.22em}h1{font:30px Georgia;margin:22px 0 5px}.sub,.small{color:var(--muted)}
-.grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;margin-top:25px}.card{background:#fff8;border:1px solid var(--line);padding:14px}.photo{aspect-ratio:4/3;background:#ddd;display:flex;align-items:center;justify-content:center;overflow:hidden}.photo img{max-width:100%;max-height:100%;display:none}
-label{font-size:11px;font-weight:bold;display:block;margin:10px 0 4px}input,select{width:100%;padding:8px;border:1px solid var(--line);background:white}
-button{border:0;background:var(--red);color:white;font-weight:bold;padding:12px 14px;cursor:pointer}.wide{width:100%;margin-top:12px}.secondary{background:white;color:var(--ink);border:1px solid var(--line)}
+:root{--cream:#f5f0e7;--paper:#fbf8f2;--red:#db5335;--ink:#302d2a;--muted:#746e68;--line:#d8d0c5;--green:#286b49;--amber:#996317;--blue:#2867a8;--purple:#7650b5}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,sans-serif}main{max-width:1240px;margin:auto;padding:28px 22px 60px}
+header{text-align:center}.logo{font:44px Georgia;color:var(--red);letter-spacing:.14em}.tag{font-size:9px;letter-spacing:.22em}h1{font:30px Georgia;margin:22px 0 5px}.sub,.note{color:var(--muted)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}.card{background:#fff8;border:1px solid var(--line);padding:14px}.photo{position:relative;background:#ddd;min-height:420px;display:flex;align-items:center;justify-content:center;overflow:hidden}.photo img,.photo canvas{max-width:100%;max-height:620px}.photo img{display:none}.photo canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+label{font-size:11px;font-weight:bold;display:block;margin:10px 0 4px}input,select{width:100%;padding:8px;border:1px solid var(--line);background:white}button{border:0;background:var(--red);color:white;font-weight:bold;padding:12px 14px;cursor:pointer}.wide{width:100%;margin-top:12px}.secondary{background:white;color:var(--ink);border:1px solid var(--line)}
 .status{padding:10px;border:1px solid var(--line);margin-top:10px;font-size:12px}.pass{color:var(--green);font-weight:bold}.warn{color:var(--amber);font-weight:bold}
-h2{font:20px Georgia;border-bottom:1px solid var(--line);padding-bottom:6px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.metric{border:1px solid var(--line);padding:8px;background:var(--paper)}.metric b{font:22px Georgia}
-.q{border-top:1px solid var(--line);padding-top:8px;margin-top:8px}.q label{font-size:12px}.results{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.result{border:1px solid var(--line);padding:10px;background:var(--paper)}.season{font:22px Georgia}
-table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td{border-bottom:1px solid var(--line);padding:7px;font-size:10px;text-align:left}th{color:var(--muted);font-size:9px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.actions button{flex:1}.note{font-size:11px;line-height:1.45;color:var(--muted)}
-@media(max-width:850px){.grid{grid-template-columns:1fr}.metrics,.results{grid-template-columns:1fr 1fr}}
-</style></head>
-<body><main>
+h2{font:20px Georgia;border-bottom:1px solid var(--line);padding-bottom:6px}.metrics,.samples{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.metric,.sample,.result{border:1px solid var(--line);padding:8px;background:var(--paper)}.metric b{font:22px Georgia}.sw{width:28px;height:28px;border:1px solid #aaa;float:left;margin-right:7px}
+.q{border-top:1px solid var(--line);padding-top:8px;margin-top:8px}.q label{font-size:12px}.results{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.season{font:22px Georgia}.locked{opacity:.48}
+table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td{border-bottom:1px solid var(--line);padding:7px;font-size:10px;text-align:left}th{color:var(--muted);font-size:9px}.actions{display:flex;gap:8px;margin-top:10px}.actions button{flex:1}.note{font-size:11px;line-height:1.45}.tiny{font-size:10px;color:var(--muted)}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.metrics,.samples,.results{grid-template-columns:1fr 1fr}}
+</style></head><body><main>
 <header><div class="logo">ŌRA</div><div class="tag">ORIGINAL. ROOTED. AUTHENTIC.</div>
-<h1>Color Snapshot — Calibration Test Bench</h1>
-<div class="sub">Step 5E-8: run multiple test faces through one frozen measurement + scoring workflow and compare patterns.</div></header>
+<h1>Color Snapshot — Integrated Calibration Test Bench</h1>
+<div class="sub">Step 5E-8.1: photograph → landmarks → clean samples → measurements → questions → 12-season scoring → calibration log.</div></header>
 
 <div class="grid">
 <section>
 <div class="card">
 <label>Tester ID</label><input id="tester" value="Tester 01">
 <label>Choose test photograph</label><input id="file" type="file" accept="image/*">
-<div class="photo"><img id="img"><span id="placeholder">No photograph selected</span></div>
-<label>Photo quality review</label>
-<select id="quality"><option value="PASS">PASS — clear, even, usable</option><option value="RETAKE">RETAKE — unreliable photo</option></select>
-<label>Quality note</label><select id="qnote"><option>None</option><option>Uneven / harsh lighting</option><option>Strong color cast</option><option>Face too small / poorly positioned</option><option>Glasses / obstruction</option><option>Heavy makeup may affect skin reading</option><option>Background / clothing contamination risk</option></select>
+<div class="photo" id="photoBox"><span id="placeholder">Choose a straight-on portrait</span><img id="img"><canvas id="overlay"></canvas></div>
 <label>Is visible hair close to natural color?</label><select id="hair"><option value="1">Yes</option><option value=".35">Partially — highlights, gray, etc.</option><option value="0">No — significantly different</option></select>
 <label>Makeup level</label><select id="makeup"><option value="1">None / minimal</option><option value=".8">Some</option><option value=".55">Full</option></select>
+<button class="wide" id="measure">ANALYZE PHOTO + MEASURE ✦</button>
+<div class="status" id="measureStatus">Select a photograph. Seasonal scoring stays locked until measurement succeeds.</div>
 </div>
 
 <div class="card" style="margin-top:12px">
-<h2>Photo measurements</h2>
-<p class="note">Enter the four-dimensional values produced by the current 5E-5 measurement/fusion workflow. This bench deliberately keeps those formulas frozen while we compare testers.</p>
-<div class="metrics">
-<div class="metric"><label>Temperature</label><input id="t" type="number" min="-3" max="3" step=".01" value="0"><small>−3 cool / +3 warm</small></div>
-<div class="metric"><label>Value</label><input id="v" type="number" min="-3" max="3" step=".01" value="0"><small>−3 light / +3 deep</small></div>
-<div class="metric"><label>Chroma</label><input id="c" type="number" min="-3" max="3" step=".01" value="0"><small>−3 muted / +3 bright</small></div>
-<div class="metric"><label>Contrast</label><input id="x" type="number" min="-3" max="3" step=".01" value="0"><small>−3 low / +3 high</small></div>
+<h2>Clean samples · CIELAB</h2><div class="samples" id="samples">
+<div class="sample">Skin<br><span class="tiny">waiting</span></div><div class="sample">Iris<br><span class="tiny">waiting</span></div><div class="sample">Brows<br><span class="tiny">waiting</span></div><div class="sample">Hair<br><span class="tiny">waiting</span></div>
 </div>
+<h2>Automatic photo measurements</h2>
+<div class="metrics">
+<div class="metric">TEMPERATURE<br><b id="mt">WITHHELD</b><div class="tiny">questionnaire-led</div></div>
+<div class="metric">VALUE<br><b id="mv">—</b><div class="tiny">−3 light / +3 deep</div></div>
+<div class="metric">CHROMA<br><b id="mc">—</b><div class="tiny">−3 muted / +3 bright</div></div>
+<div class="metric">CONTRAST<br><b id="mx">—</b><div class="tiny">−3 low / +3 high</div></div>
+</div>
+<div class="status" id="quality">Photo quality gate has not run.</div>
 </div>
 </section>
 
 <section>
-<div class="card">
+<div class="card locked" id="questionCard">
 <h2>Four guided questions</h2>
 <div class="q"><label>1. Which metal tends to look best?</label><select id="q1"><option value="na">Not sure</option><option value="2">Gold</option><option value="-2">Silver</option><option value="0">Both</option></select></div>
 <div class="q"><label>2. Which color family makes the face look healthier?</label><select id="q2"><option value="na">Not sure</option><option value="3">Warm earthy — coral, camel, olive, rust</option><option value="-3">Cool fresh — rose, berry, blue, lavender</option><option value="0">Both</option></select></div>
 <div class="q"><label>3. Which colors feel most naturally you?</label><select id="q3"><option value="na">Not sure</option><option value="-3">Soft / blended</option><option value="3">Clear / vibrant</option><option value="0">Somewhere between</option></select></div>
 <div class="q"><label>4. Natural contrast?</label><select id="q4"><option value="na">Not sure</option><option value="-2">Features blend softly</option><option value="0">Noticeable difference</option><option value="2">Strong light / dark difference</option></select></div>
-<button class="wide" id="score">CALCULATE + SCORE TESTER ✦</button><div class="status" id="status">Ready for a tester.</div>
+<button class="wide" id="score" disabled>COMBINE PHOTO + QUESTIONS + SCORE ✦</button>
+<div class="status" id="scoreStatus">Waiting for valid photo measurements.</div>
 </div>
 
 <div class="card" style="margin-top:12px">
-<h2>Scoring result</h2>
-<div class="results">
+<h2>Scoring result</h2><div class="results">
 <div class="result"><small>PRIMARY</small><div class="season" id="primary">—</div><div id="pd">—</div></div>
 <div class="result"><small>RAW RUNNER-UP</small><div class="season" id="runner">—</div><div id="rd">—</div></div>
-<div class="result"><small>ADJACENT SECONDARY</small><div class="season" id="secondary">—</div><div id="sd">—</div></div>
-</div>
+<div class="result"><small>ADJACENT SECONDARY</small><div class="season" id="secondary">—</div><div id="sd">—</div></div></div>
 <div class="status" id="guard">Guardrails will appear here.</div>
-<label>Known / expected season (optional — do not guess)</label>
-<select id="expected"><option value="">Unknown</option><option>Light Spring</option><option>Warm Spring</option><option>Bright Spring</option><option>Light Summer</option><option>Cool Summer</option><option>Soft Summer</option><option>Soft Autumn</option><option>Warm Autumn</option><option>Deep Autumn</option><option>Deep Winter</option><option>Cool Winter</option><option>Bright Winter</option></select>
+<label>Known / expected season (optional — do not guess)</label><select id="expected"><option value="">Unknown</option><option>Light Spring</option><option>Warm Spring</option><option>Bright Spring</option><option>Light Summer</option><option>Cool Summer</option><option>Soft Summer</option><option>Soft Autumn</option><option>Warm Autumn</option><option>Deep Autumn</option><option>Deep Winter</option><option>Cool Winter</option><option>Bright Winter</option></select>
 <label>Human reaction</label><select id="reaction"><option>Not recorded</option><option>Yes — feels accurate</option><option>Mostly</option><option>No</option></select>
-<button class="wide" id="save">SAVE TESTER TO CALIBRATION LOG</button>
+<button class="wide" id="save" disabled>SAVE TESTER TO CALIBRATION LOG</button>
 </div>
-</section>
-</div>
+</section></div>
 
-<section class="card" style="margin-top:18px">
-<h2>Calibration log</h2>
+<section class="card" style="margin-top:18px"><h2>Calibration log</h2>
 <div class="actions"><button id="csv">DOWNLOAD CSV</button><button id="clear" class="secondary">CLEAR SESSION LOG</button></div>
 <table><thead><tr><th>Tester</th><th>Quality</th><th>T</th><th>V</th><th>C</th><th>X</th><th>Primary</th><th>Runner-up</th><th>Adjacent</th><th>Temp flag</th><th>Expected</th><th>Reaction</th></tr></thead><tbody id="log"></tbody></table>
-<p class="note">The calibration log is stored only in this browser session/local storage for testing. Selected photographs are not placed in the log and are not uploaded by this page. The CSV contains measurements and labels only.</p>
-</section>
-</main>
-<script>
+<p class="note">Selected portraits are read in the browser and are not written to this calibration log. The log/CSV contains measurements and labels only. MediaPipe model resources are loaded remotely by the page.</p></section>
+
+<script type="module">
+import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/+esm";
+const $=id=>document.getElementById(id), clamp=n=>Math.max(-3,Math.min(3,n));
+let landmarker=null, photo=null, measurement=null, current=null, records=JSON.parse(localStorage.getItem("cs5e81")||"[]");
+
+async function init(){
+ try{
+  const vision=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm");
+  landmarker=await FaceLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",delegate:"CPU"},runningMode:"IMAGE",numFaces:1,minFaceDetectionConfidence:.5,minFacePresenceConfidence:.5});
+  $("measureStatus").innerHTML='<span class="pass">✓ Analysis engine ready.</span> Choose a portrait.';
+ }catch(e){$("measureStatus").innerHTML='<span class="warn">Analysis engine could not load.</span> '+e.message}
+}
+init();
+
+$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;measurement=null;current=null;$("score").disabled=true;$("save").disabled=true;$("questionCard").classList.add("locked");
+ const u=URL.createObjectURL(f);$("img").src=u;$("img").style.display="block";$("placeholder").style.display="none";
+ $("img").onload=()=>{photo={file:f};syncCanvas();$("measureStatus").innerHTML='<span class="pass">Photo loaded.</span> Click Analyze Photo + Measure.'}
+};
+function syncCanvas(){const img=$("img"),c=$("overlay"),box=$("photoBox");c.width=box.clientWidth;c.height=box.clientHeight}
+function rgb2lab(r,g,b){r/=255;g/=255;b/=255;[r,g,b]=[r,g,b].map(v=>v>.04045?Math.pow((v+.055)/1.055,2.4):v/12.92);let x=(r*.4124+g*.3576+b*.1805)/.95047,y=(r*.2126+g*.7152+b*.0722),z=(r*.0193+g*.1192+b*.9505)/1.08883;[x,y,z]=[x,y,z].map(v=>v>.008856?Math.cbrt(v):7.787*v+16/116);return [116*y-16,500*(x-y),200*(y-z)]}
+function sampleCircle(ctx,cx,cy,r){let d=ctx.getImageData(Math.max(0,cx-r),Math.max(0,cy-r),2*r,2*r).data,rs=[],gs=[],bs=[];for(let y=0;y<2*r;y++)for(let x=0;x<2*r;x++){if((x-r)**2+(y-r)**2<=r*r){let i=(y*2*r+x)*4;if(d[i+3]>0){rs.push(d[i]);gs.push(d[i+1]);bs.push(d[i+2])}}}let med=a=>a.sort((x,y)=>x-y)[Math.floor(a.length/2)]||0;let rgb=[med(rs),med(gs),med(bs)],lab=rgb2lab(...rgb);return{rgb,lab,C:Math.hypot(lab[1],lab[2])}}
+function sampleRect(ctx,x,y,w,h){let d=ctx.getImageData(Math.max(0,x),Math.max(0,y),Math.max(1,w),Math.max(1,h)).data,rs=[],gs=[],bs=[];for(let i=0;i<d.length;i+=4){if(d[i+3]){rs.push(d[i]);gs.push(d[i+1]);bs.push(d[i+2])}}let med=a=>a.sort((x,y)=>x-y)[Math.floor(a.length/2)]||0,rgb=[med(rs),med(gs),med(bs)],lab=rgb2lab(...rgb);return{rgb,lab,C:Math.hypot(lab[1],lab[2])}}
+function p(lm,i,w,h){return [lm[i].x*w,lm[i].y*h]}
+function swatch(s,name){let [r,g,b]=s.rgb,[L,a,bb]=s.lab;return `<div class="sample"><span class="sw" style="background:rgb(${r},${g},${b})"></span><b>${name}</b><br><span class="tiny">L* ${L.toFixed(1)} · C* ${s.C.toFixed(1)}<br>a* ${a.toFixed(1)} · b* ${bb.toFixed(1)}</span></div>`}
+$("measure").onclick=async()=>{
+ if(!photo||!landmarker){$("measureStatus").innerHTML='<span class="warn">Choose a photo and wait for the analysis engine.</span>';return}
+ try{
+  const img=$("img"),work=document.createElement("canvas"),w=img.naturalWidth,h=img.naturalHeight;work.width=w;work.height=h;let ctx=work.getContext("2d",{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);
+  let res=landmarker.detect(img);if(!res.faceLandmarks?.length)throw Error("No face detected. Try a clearer straight-on portrait.");let lm=res.faceLandmarks[0];
+  // Clean regions: bilateral cheeks; iris centers; brows; conservative hair candidates above/temples.
+  let lc=p(lm,234,w,h),rc=p(lm,454,w,h),le=p(lm,468,w,h),re=p(lm,473,w,h),lb=p(lm,70,w,h),rb=p(lm,300,w,h),top=p(lm,10,w,h),ltemp=p(lm,127,w,h),rtemp=p(lm,356,w,h);
+  let faceW=Math.abs(rc[0]-lc[0]),rad=Math.max(4,Math.round(faceW*.035));
+  let skin1=sampleCircle(ctx,lc[0]+faceW*.17,lc[1],rad),skin2=sampleCircle(ctx,rc[0]-faceW*.17,rc[1],rad);
+  let skin={rgb:skin1.rgb.map((v,i)=>Math.round((v+skin2.rgb[i])/2)),lab:skin1.lab.map((v,i)=>(v+skin2.lab[i])/2),C:(skin1.C+skin2.C)/2};
+  let iris1=sampleCircle(ctx,le[0],le[1],Math.max(2,Math.round(rad*.45))),iris2=sampleCircle(ctx,re[0],re[1],Math.max(2,Math.round(rad*.45)));
+  let iris={rgb:iris1.rgb.map((v,i)=>Math.round((v+iris2.rgb[i])/2)),lab:iris1.lab.map((v,i)=>(v+iris2.lab[i])/2),C:(iris1.C+iris2.C)/2};
+  let brow1=sampleCircle(ctx,lb[0],lb[1],Math.max(3,Math.round(rad*.7))),brow2=sampleCircle(ctx,rb[0],rb[1],Math.max(3,Math.round(rad*.7)));
+  let brow={rgb:brow1.rgb.map((v,i)=>Math.round((v+brow2.rgb[i])/2)),lab:brow1.lab.map((v,i)=>(v+brow2.lab[i])/2),C:(brow1.C+brow2.C)/2};
+  let hr=Math.max(6,Math.round(faceW*.08)),hairA=sampleRect(ctx,top[0]-hr,Math.max(0,top[1]-hr*2.1),hr*2,hr),hairB=sampleCircle(ctx,ltemp[0]-hr*.25,ltemp[1],hr*.55),hairC=sampleCircle(ctx,rtemp[0]+hr*.25,rtemp[1],hr*.55);
+  let hairs=[hairA,hairB,hairC].sort((a,b)=>a.lab[0]-b.lab[0]),hair=hairs[1];
+  // Quality: exposure + face size. Conservative; color-cast remains diagnostic rather than automatic fail.
+  let faceRatio=faceW/w, skinL=skin.lab[0], quality=(faceRatio>=.22&&skinL>=28&&skinL<=88)?"PASS":"RETAKE";
+  // 5E-4 provisional mappings. Hair weight is controlled by answer.
+  let hw=Number($("hair").value), weightedL=(skin.lab[0]+iris.lab[0]+brow.lab[0]+hw*hair.lab[0])/(3+hw);
+  let value=clamp((58-weightedL)/10);
+  let separation=((Math.abs(skin.lab[0]-iris.lab[0])+Math.abs(skin.lab[0]-brow.lab[0])+hw*Math.abs(skin.lab[0]-hair.lab[0]))/(2+hw));
+  let contrast=clamp((separation-30)/12);
+  let weightedC=(skin.C+iris.C+brow.C+hw*hair.C)/(3+hw), chroma=clamp((weightedC-22)/7);
+  measurement={value,contrast,chroma,quality,samples:{skin,iris,brow,hair},weightedL,separation,weightedC};
+  $("samples").innerHTML=swatch(skin,"Skin")+swatch(iris,"Iris")+swatch(brow,"Brows")+swatch(hair,"Hair");
+  $("mv").textContent=(value>=0?"+":"")+value.toFixed(2);$("mc").textContent=(chroma>=0?"+":"")+chroma.toFixed(2);$("mx").textContent=(contrast>=0?"+":"")+contrast.toFixed(2);
+  $("quality").innerHTML=quality==="PASS"?`<span class="pass">✓ PHOTO QUALITY PASS.</span> Face detected; exposure and face size are usable.`:`<span class="warn">⚠ RETAKE.</span> Exposure or face size is outside the calibration gate. Seasonal scoring remains locked.`;
+  if(quality==="PASS"){$("score").disabled=false;$("questionCard").classList.remove("locked");$("measureStatus").innerHTML=`<span class="pass">✓ MEASUREMENT COMPLETE.</span> Weighted L*: ${weightedL.toFixed(1)} · feature separation: ${separation.toFixed(1)} · weighted C*: ${weightedC.toFixed(1)}`}
+  else{$("score").disabled=true;$("questionCard").classList.add("locked")}
+ }catch(e){measurement=null;$("score").disabled=true;$("measureStatus").innerHTML='<span class="warn">Measurement could not complete.</span> '+e.message}
+};
 const targets={"Light Spring":[1.5,-2.5,1,-1],"Warm Spring":[2.7,-1,1.5,0],"Bright Spring":[1,0,2.7,2],"Light Summer":[-1,-2.5,-.8,-1.8],"Cool Summer":[-2.7,-.5,-.5,-.3],"Soft Summer":[-.8,0,-2.7,-1.5],"Soft Autumn":[.8,.3,-2.7,-1],"Warm Autumn":[2.7,.8,-1,0],"Deep Autumn":[1,2.5,-.8,1],"Deep Winter":[-.8,2.5,.8,2],"Cool Winter":[-2.7,.7,1.5,1.5],"Bright Winter":[-1,0,2.8,2.7]};
 const weights={"Light Spring":[.2,.35,.25,.2],"Light Summer":[.2,.35,.2,.25],"Warm Spring":[.35,.2,.25,.2],"Warm Autumn":[.35,.2,.25,.2],"Cool Summer":[.35,.2,.25,.2],"Cool Winter":[.35,.15,.25,.25],"Soft Summer":[.25,.15,.35,.25],"Soft Autumn":[.25,.15,.35,.25],"Bright Spring":[.25,.15,.3,.3],"Bright Winter":[.25,.15,.3,.3],"Deep Autumn":[.2,.35,.2,.25],"Deep Winter":[.2,.35,.2,.25]};
 const adj={"Light Spring":["Light Summer","Warm Spring"],"Warm Spring":["Light Spring","Bright Spring","Warm Autumn"],"Bright Spring":["Warm Spring","Bright Winter"],"Light Summer":["Light Spring","Cool Summer","Soft Summer"],"Cool Summer":["Light Summer","Soft Summer","Cool Winter"],"Soft Summer":["Cool Summer","Soft Autumn","Light Summer"],"Soft Autumn":["Soft Summer","Warm Autumn","Deep Autumn"],"Warm Autumn":["Soft Autumn","Deep Autumn","Warm Spring"],"Deep Autumn":["Warm Autumn","Deep Winter","Soft Autumn"],"Deep Winter":["Deep Autumn","Cool Winter","Bright Winter"],"Cool Winter":["Cool Summer","Deep Winter","Bright Winter"],"Bright Winter":["Bright Spring","Cool Winter","Deep Winter"]};
-const $=id=>document.getElementById(id), clamp=n=>Math.max(-3,Math.min(3,Number(n)));
-let current=null, records=JSON.parse(localStorage.getItem("cs5e8")||"[]");
-$("file").onchange=e=>{let f=e.target.files[0];if(!f)return;let u=URL.createObjectURL(f);$("img").src=u;$("img").style.display="block";$("placeholder").style.display="none"};
-function avg(vals){let a=vals.filter(v=>v!=="na").map(Number);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null}
-function fuse(){
- let pt=clamp($("t").value), pv=clamp($("v").value), pc=clamp($("c").value), px=clamp($("x").value);
- let qt=avg([$ ("q1").value,$("q2").value]), qc=$("q3").value==="na"?null:Number($("q3").value), qx=$("q4").value==="na"?null:Number($("q4").value);
- // Renormalize only when question evidence exists; "Not sure" does not pull toward zero.
- let t=qt===null?pt:(.45*pt+.55*qt);
- let c=qc===null?pc:(.60*pc+.40*qc);
- let x=qx===null?px:(.80*px+.20*qx);
- return [clamp(t),pv,clamp(c),clamp(x)];
-}
-function dist(n,p){let q=targets[n],w=weights[n];return Math.sqrt(p.reduce((s,a,i)=>s+w[i]*(a-q[i])**2,0))}
+function availableAvg(vals){let a=vals.filter(v=>v!=="na").map(Number);return a.length?a.reduce((s,v)=>s+v,0)/a.length:null}
+function dist(n,p){return Math.sqrt(p.reduce((s,a,i)=>s+weights[n][i]*(a-targets[n][i])**2,0))}
 function conflict(n,p){let a=p[0],b=targets[n][0];return Math.abs(a)>=1&&Math.abs(b)>=.8&&Math.sign(a)!==Math.sign(b)}
-function calculate(){
- if($("quality").value==="RETAKE"){$("status").innerHTML='<span class="warn">⚠ RETAKE REQUIRED.</span> This photograph should not receive a seasonal result.';current=null;return}
- let p=fuse(), all=Object.keys(targets).map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d), pri=all[0],run=all[1],sec=adj[pri.n].map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d)[0];
- current={p,pri,run,sec,temp:conflict(pri.n,p)};
+$("score").onclick=()=>{
+ if(!measurement||measurement.quality!=="PASS")return;
+ let qt=availableAvg([$ ("q1").value,$("q2").value]), qc=$("q3").value==="na"?null:Number($("q3").value), qx=$("q4").value==="na"?null:Number($("q4").value);
+ // Temperature remains questionnaire-led because 5E-4 intentionally withheld it.
+ let t=qt===null?0:clamp(qt), v=measurement.value, c=qc===null?measurement.chroma:clamp(.60*measurement.chroma+.40*qc), x=qx===null?measurement.contrast:clamp(.80*measurement.contrast+.20*qx), p=[t,v,c,x];
+ let all=Object.keys(targets).map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d),pri=all[0],run=all[1],sec=adj[pri.n].map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d)[0];
+ current={p,pri,run,sec,temp:conflict(pri.n,p),quality:measurement.quality};
  $("primary").textContent=pri.n;$("pd").textContent="Distance "+pri.d.toFixed(3);$("runner").textContent=run.n;$("rd").textContent="Distance "+run.d.toFixed(3);$("secondary").textContent=sec.n;$("sd").textContent="Distance "+sec.d.toFixed(3);
- $("status").innerHTML='<span class="pass">✓ TESTER SCORED.</span> Four-dimensional profile: '+p.map(v=>(v>=0?"+":"")+v.toFixed(2)).join(" · ");
- $("guard").innerHTML=(conflict(pri.n,p)?'<span class="warn">⚠ Primary has opposite temperature-direction conflict.</span>':'<span class="pass">✓ Primary passes temperature-direction guardrail.</span>')+(run.n!==sec.n?` Raw runner-up (${run.n}) differs from logical adjacent (${sec.n}).`:" Raw runner-up is also logically adjacent.");
-}
-$("score").onclick=calculate;
-function render(){ $("log").innerHTML=records.map(r=>`<tr><td>${r.tester}</td><td>${r.quality}</td><td>${r.p[0].toFixed(2)}</td><td>${r.p[1].toFixed(2)}</td><td>${r.p[2].toFixed(2)}</td><td>${r.p[3].toFixed(2)}</td><td>${r.primary}</td><td>${r.runner}</td><td>${r.secondary}</td><td>${r.temp?"FLAG":"—"}</td><td>${r.expected||"Unknown"}</td><td>${r.reaction}</td></tr>`).join("")}
-$("save").onclick=()=>{if(!current){$("status").innerHTML='<span class="warn">Calculate a valid tester first.</span>';return}records.push({tester:$("tester").value||("Tester "+(records.length+1)),quality:$("quality").value,p:current.p,primary:current.pri.n,runner:current.run.n,secondary:current.sec.n,temp:current.temp,expected:$("expected").value,reaction:$("reaction").value});localStorage.setItem("cs5e8",JSON.stringify(records));render();$("tester").value="Tester "+String(records.length+1).padStart(2,"0")}
-$("clear").onclick=()=>{if(confirm("Clear the calibration log stored in this browser?")){records=[];localStorage.removeItem("cs5e8");render()}}
-$("csv").onclick=()=>{let h=["Tester","Quality","Temperature","Value","Chroma","Contrast","Primary","RunnerUp","AdjacentSecondary","TemperatureFlag","Expected","Reaction"],rows=records.map(r=>[r.tester,r.quality,...r.p,r.primary,r.runner,r.secondary,r.temp?"FLAG":"",r.expected,r.reaction]);let esc=v=>'"'+String(v??"").replaceAll('"','""')+'"',csv=[h,...rows].map(a=>a.map(esc).join(",")).join("\n");let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="color_snapshot_5E8_calibration_log.csv";a.click()}
+ $("guard").innerHTML=(current.temp?'<span class="warn">⚠ Primary has opposite temperature-direction conflict.</span>':'<span class="pass">✓ Primary passes temperature-direction guardrail.</span>')+(run.n!==sec.n?` Raw runner-up (${run.n}) differs from logical adjacent (${sec.n}).`:" Raw runner-up is also logically adjacent.");
+ $("scoreStatus").innerHTML='<span class="pass">✓ PHOTO + QUESTION FUSION COMPLETE.</span> Profile: '+p.map(v=>(v>=0?"+":"")+v.toFixed(2)).join(" · ");$("save").disabled=false;
+};
+function render(){$("log").innerHTML=records.map(r=>`<tr><td>${r.tester}</td><td>${r.quality}</td><td>${r.p[0].toFixed(2)}</td><td>${r.p[1].toFixed(2)}</td><td>${r.p[2].toFixed(2)}</td><td>${r.p[3].toFixed(2)}</td><td>${r.primary}</td><td>${r.runner}</td><td>${r.secondary}</td><td>${r.temp?"FLAG":"—"}</td><td>${r.expected||"Unknown"}</td><td>${r.reaction}</td></tr>`).join("")}
+$("save").onclick=()=>{if(!current)return;records.push({tester:$("tester").value||"Tester",quality:current.quality,p:current.p,primary:current.pri.n,runner:current.run.n,secondary:current.sec.n,temp:current.temp,expected:$("expected").value,reaction:$("reaction").value});localStorage.setItem("cs5e81",JSON.stringify(records));render();$("tester").value="Tester "+String(records.length+1).padStart(2,"0");$("save").disabled=true}
+$("clear").onclick=()=>{if(confirm("Clear this browser's 5E-8.1 calibration log?")){records=[];localStorage.removeItem("cs5e81");render()}}
+$("csv").onclick=()=>{let h=["Tester","Quality","Temperature","Value","Chroma","Contrast","Primary","RunnerUp","AdjacentSecondary","TemperatureFlag","Expected","Reaction"],rows=records.map(r=>[r.tester,r.quality,...r.p,r.primary,r.runner,r.secondary,r.temp?"FLAG":"",r.expected,r.reaction]),esc=v=>'"'+String(v??"").replaceAll('"','""')+'"',csv=[h,...rows].map(a=>a.map(esc).join(",")).join("\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="color_snapshot_5E8_1_calibration_log.csv";a.click()}
 render();
 </script></body></html>
