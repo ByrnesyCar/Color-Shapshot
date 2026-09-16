@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot by ŌRA Salon · 5F-5.1</title>
+<title>Color Snapshot by ŌRA Salon · 5F-5.1a</title>
 <style>
 :root {
   --ora-red:#ef1016;
@@ -110,8 +110,11 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
 .drape.left{left:-9%;transform:rotate(13deg)}
 .drape.right{right:-9%;transform:rotate(-13deg)}
 .drape.center{left:25%;width:50%;height:38%;bottom:-25px;border-radius:60% 60% 0 0}
+.drape-img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:contain!important;z-index:3!important;pointer-events:none}
 .pdf-palette{display:grid;grid-template-columns:repeat(12,1fr);gap:5px;margin:16px 0 22px}
 .pdf-palette i{aspect-ratio:1;border-radius:50%;border:1px solid rgba(0,0,0,.06)}
+.pdf-palette img{width:100%;display:block}
+.beauty-swatches img{width:34px;height:34px;display:block}
 .pdf-info{display:grid;grid-template-columns:1fr 1fr;gap:14px 28px}
 .pdf-info div{border-top:1px solid #e7dfd6;padding-top:10px}
 .pdf-info b,.beauty-cat b{display:block;text-transform:uppercase;letter-spacing:.12em;font-size:9px;color:var(--ora-red);margin-bottom:5px}
@@ -122,6 +125,8 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
 .beauty-cat span{font-size:13px;line-height:1.45;color:#554f49}
 .pdf-footer{margin-top:28px;padding-top:12px;border-top:1px solid #ded5ca;font-size:10px;color:#77706a;display:flex;justify-content:space-between}
 @media print{
+ *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+
  @page{size:letter;margin:0.35in}
  body{background:white}
  body > .shell .brand-panel{display:none!important}
@@ -394,9 +399,9 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
       <div class="pdf-sub" id="pdfSignature"></div>
       <div class="drape-wrap">
         <img id="pdfHeadshot" alt="Guest headshot">
-        <div class="drape left" id="drape1"></div>
-        <div class="drape right" id="drape2"></div>
-        <div class="drape center" id="drape3"></div>
+        <img class="drape-img" id="drape1" alt="">
+        <img class="drape-img" id="drape2" alt="">
+        <img class="drape-img" id="drape3" alt="">
       </div>
       <div class="pdf-palette" id="pdfPalette"></div>
       <div class="pdf-info">
@@ -605,7 +610,22 @@ function prepareEmail(){
  window.location.href=href;
 }
 
-function swatchHTML(arr){return arr.map(c=>'<i style="background:'+c+'"></i>').join('')}
+function svgColorData(color,w=80,h=80,shape='circle'){
+ const body=shape==='circle'
+   ? `<circle cx="${w/2}" cy="${h/2}" r="${Math.min(w,h)*.46}" fill="${color}" stroke="rgba(0,0,0,.10)" stroke-width="1"/>`
+   : `<rect width="${w}" height="${h}" rx="${Math.min(w,h)*.18}" fill="${color}"/>`;
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`);
+}
+function drapeSVG(color,side){
+ const flip=side==='right'?'transform="translate(330 0) scale(-1 1)"':'';
+ const path=`<path d="M0 365 L0 230 C42 225 73 232 105 251 C128 264 149 279 171 303 C136 315 113 337 101 365 Z" fill="${color}"/>`;
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="330" height="365" viewBox="0 0 330 365"><g ${flip}>${path}</g></svg>`);
+}
+function centerDrapeSVG(color){
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="330" height="365" viewBox="0 0 330 365"><path d="M102 365 C112 300 133 275 165 266 C197 275 218 300 228 365 Z" fill="${color}"/></svg>`);
+}
+function swatchHTML(arr){return arr.map(c=>'<img alt="" src="'+svgColorData(c)+'" style="width:100%;aspect-ratio:1;display:block">').join('')}
+function beautySwatchHTML(arr){return arr.map(c=>'<img alt="" src="'+svgColorData(c)+'" style="width:34px;height:34px;display:block">').join('')}
 function createColorSnapshotPDF(){
  if(!window.csResult)return;
  const r=window.csResult,c=seasonContent[r.primary],b=beautyContent[r.primary];
@@ -616,19 +636,24 @@ function createColorSnapshotPDF(){
  document.getElementById('pdfSignature').textContent=c.sig;
  document.getElementById('pdfHeadshot').src=document.getElementById('photoPreview').src;
  document.getElementById('pdfPalette').innerHTML=swatchHTML(c.pal);
- ['drape1','drape2','drape3'].forEach((id,i)=>document.getElementById(id).style.background=c.pal[[0,3,7][i]]);
+ document.getElementById('drape1').src=drapeSVG(c.pal[0],'left');
+ document.getElementById('drape2').src=drapeSVG(c.pal[3],'right');
+ document.getElementById('drape3').src=centerDrapeSVG(c.pal[7]);
  document.getElementById('pdfNeutrals').textContent=c.neu;
  document.getElementById('pdfMetals').textContent=c.met;
  document.getElementById('pdfAdjacent').textContent=r.adjacent;
  document.getElementById('pdfConfidence').textContent=r.confidence+' match';
  document.getElementById('beautyIntro').textContent='A '+r.primary+' makeup direction designed to harmonize with your overall coloring.';
- document.getElementById('eyeSwatches').innerHTML=swatchHTML(b.eye);document.getElementById('eyeText').textContent=b.eyeText;
- document.getElementById('lipSwatches').innerHTML=swatchHTML(b.lip);document.getElementById('lipText').textContent=b.lipText;
- document.getElementById('blushSwatches').innerHTML=swatchHTML(b.blush);document.getElementById('blushText').textContent=b.blushText;
- document.getElementById('masSwatches').innerHTML=swatchHTML(b.mas);document.getElementById('masText').textContent=b.masText;
+ document.getElementById('eyeSwatches').innerHTML=beautySwatchHTML(b.eye);document.getElementById('eyeText').textContent=b.eyeText;
+ document.getElementById('lipSwatches').innerHTML=beautySwatchHTML(b.lip);document.getElementById('lipText').textContent=b.lipText;
+ document.getElementById('blushSwatches').innerHTML=beautySwatchHTML(b.blush);document.getElementById('blushText').textContent=b.blushText;
+ document.getElementById('masSwatches').innerHTML=beautySwatchHTML(b.mas);document.getElementById('masText').textContent=b.masText;
  document.getElementById('pdfHair').textContent=c.hair;
  document.getElementById('pdfSheet').style.display='block';
- setTimeout(()=>{window.print();setTimeout(()=>document.getElementById('pdfSheet').style.display='none',500)},100);
+ const printable=[...document.querySelectorAll('#pdfSheet img')];
+ Promise.all(printable.map(im=>im.decode?im.decode().catch(()=>{}):Promise.resolve())).then(()=>{
+   setTimeout(()=>{window.print();setTimeout(()=>document.getElementById('pdfSheet').style.display='none',500)},180);
+ });
 }
 
 function finishSession(){
