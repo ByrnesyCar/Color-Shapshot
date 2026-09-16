@@ -1,186 +1,51 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Color Snapshot — Face Landmark Test</title>
-  <style>
-    :root{--cream:#f5f0e7;--ink:#343434;--muted:#746f69;--red:#d94a32;--line:#d9d2c7;--ok:#376b4b;--bad:#a43b31}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
-    main{max-width:980px;margin:0 auto;padding:42px 22px 60px}
-    header{text-align:center;margin-bottom:28px}
-    .logo{font-family:Georgia,serif;font-size:46px;letter-spacing:.14em;color:var(--red);line-height:1}
-    .tag{font-size:11px;letter-spacing:.18em;margin-top:8px}
-    h1{font-family:Georgia,serif;font-weight:400;font-size:31px;margin:34px 0 8px}
-    .sub{color:var(--muted);font-size:15px}
-    .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;align-items:start}
-    .photo{background:#ddd6cd;border-radius:4px;min-height:440px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
-    canvas{display:block;width:100%;height:auto}
-    .placeholder{text-align:center;color:#777;line-height:1.5;padding:40px}
-    .panel{border-top:1px solid var(--line);padding-top:20px}
-    label{display:block;font-size:13px;font-weight:700;margin-bottom:8px}
-    input[type=file]{width:100%;font-size:14px;margin-bottom:18px}
-    button{width:100%;border:0;background:var(--red);color:white;padding:14px 16px;font-weight:700;letter-spacing:.06em;cursor:pointer}
-    button:disabled{opacity:.45;cursor:not-allowed}
-    .status{margin-top:18px;border:1px solid var(--line);padding:14px;background:rgba(255,255,255,.3);font-size:14px;line-height:1.45;min-height:74px}
-    .ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
-    .small{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.45}
-    .badge{display:inline-block;border:1px solid var(--line);padding:5px 8px;margin:8px 5px 0 0;font-size:11px;letter-spacing:.05em}
-    @media(max-width:760px){.grid{grid-template-columns:1fr}.photo{min-height:320px}.logo{font-size:38px}}
-  </style>
-</head>
-<body>
-<main>
-  <header>
-    <div class="logo">ŌRA</div>
-    <div class="tag">ORIGINAL. ROOTED. AUTHENTIC.</div>
-    <h1>Color Snapshot — Landmark Test</h1>
-    <div class="sub">Step 5E-1: confirm that the browser can find one face and its facial landmarks.</div>
-  </header>
-
-  <section class="grid">
-    <div class="photo" id="photoBox">
-      <div class="placeholder" id="placeholder">Choose a test photograph.<br>No season or color score is calculated in this build.</div>
-      <canvas id="canvas" hidden></canvas>
-    </div>
-
-    <div class="panel">
-      <label for="file">Choose test photograph</label>
-      <input id="file" type="file" accept="image/*">
-      <button id="analyze" type="button" disabled>ANALYZE PHOTO ✦</button>
-
-      <div class="status" id="status" aria-live="polite">
-        <strong>Engine:</strong> loading MediaPipe…<br>
-        <span>This test intentionally does only face + landmark detection.</span>
-      </div>
-
-      <div id="badges"></div>
-      <div class="small">
-        The selected photograph is read by this page for on-device MediaPipe processing. This prototype does not upload the selected photo to the Color Snapshot repository or database.
-      </div>
-    </div>
-  </section>
-</main>
-
-<script type="module">
-import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
-
-const fileInput = document.getElementById("file");
-const analyzeButton = document.getElementById("analyze");
-const status = document.getElementById("status");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const placeholder = document.getElementById("placeholder");
-const badges = document.getElementById("badges");
-
-let image = null;
-let imageUrl = null;
-let faceLandmarker = null;
-let engineReady = false;
-
-function setStatus(html){ status.innerHTML = html; }
-function escapeHtml(value){
-  return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function updateButton(){ analyzeButton.disabled = !(engineReady && image); }
-
-async function initialize(){
-  try{
-    setStatus("<strong>Engine:</strong> loading MediaPipe…<br><span>Please wait a moment.</span>");
-    const vision = await FilesetResolver.forVisionTasks(
-      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
-    );
-    faceLandmarker = await FaceLandmarker.createFromOptions(vision,{
-      baseOptions:{
-        modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-        delegate:"CPU"
-      },
-      runningMode:"IMAGE",
-      numFaces:1,
-      minFaceDetectionConfidence:0.5,
-      minFacePresenceConfidence:0.5
-    });
-    engineReady = true;
-    setStatus('<span class="ok">✓ MediaPipe ready.</span><br>Choose a photograph, then click <strong>Analyze Photo</strong>.');
-    updateButton();
-  }catch(err){
-    console.error(err);
-    setStatus('<span class="bad">MediaPipe could not start.</span><br>'+escapeHtml(err?.message || err));
-  }
-}
-
-fileInput.addEventListener("change", () => {
-  const file = fileInput.files && fileInput.files[0];
-  badges.innerHTML = "";
-  image = null;
-  if(!file){ updateButton(); return; }
-
-  if(imageUrl) URL.revokeObjectURL(imageUrl);
-  imageUrl = URL.createObjectURL(file);
-  const img = new Image();
-  img.onload = () => {
-    image = img;
-    const maxW = 900;
-    const scale = Math.min(1, maxW / img.naturalWidth);
-    canvas.width = Math.round(img.naturalWidth * scale);
-    canvas.height = Math.round(img.naturalHeight * scale);
-    ctx.drawImage(img,0,0,canvas.width,canvas.height);
-    placeholder.hidden = true;
-    canvas.hidden = false;
-    if(engineReady) setStatus('<span class="ok">✓ Photo loaded.</span><br>Ready for the landmark test.');
-    else setStatus("<strong>Photo loaded.</strong><br>MediaPipe is still loading…");
-    updateButton();
-  };
-  img.onerror = () => {
-    setStatus('<span class="bad">That image could not be opened.</span><br>Please choose another JPG, PNG, or browser-supported image.');
-  };
-  img.src = imageUrl;
-});
-
-analyzeButton.addEventListener("click", async () => {
-  if(!engineReady || !faceLandmarker || !image) return;
-  analyzeButton.disabled = true;
-  badges.innerHTML = "";
-  setStatus("<strong>Analyzing…</strong><br>Looking for one face and its landmarks.");
-
-  try{
-    const result = faceLandmarker.detect(image);
-    const faces = result?.faceLandmarks || [];
-
-    ctx.drawImage(image,0,0,canvas.width,canvas.height);
-
-    if(!faces.length){
-      setStatus('<span class="bad">No usable face detected.</span><br>Try a straight-on photograph with the full face clearly visible.');
-      badges.innerHTML = '<span class="badge">Face detected: NO</span>';
-      return;
-    }
-
-    const landmarks = faces[0];
-    const dotIds = [10, 33, 133, 362, 263, 61, 291, 152];
-    ctx.fillStyle = "#d94a32";
-    for(const id of dotIds){
-      const p = landmarks[id];
-      if(!p) continue;
-      ctx.beginPath();
-      ctx.arc(p.x*canvas.width,p.y*canvas.height,4,0,Math.PI*2);
-      ctx.fill();
-    }
-
-    setStatus('<span class="ok">✓ LANDMARK TEST PASSED.</span><br>One face was detected with <strong>'+landmarks.length+'</strong> facial landmarks. The red dots are only a visual confirmation.');
-    badges.innerHTML =
-      '<span class="badge">Face detected: YES</span>'+
-      '<span class="badge">Landmarks: '+landmarks.length+'</span>'+
-      '<span class="badge">Season scoring: OFF</span>';
-  }catch(err){
-    console.error(err);
-    setStatus('<span class="bad">Analysis could not complete.</span><br>'+escapeHtml(err?.message || err));
-  }finally{
-    updateButton();
-  }
-});
-
-initialize();
-</script>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Color Snapshot — 5E-7 Calibration & Guardrails</title>
+<style>
+:root{--cream:#f5f0e7;--red:#d95335;--ink:#302f2d;--muted:#746f69;--line:#d8d0c5;--green:#2f6948;--amber:#9a641a}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,sans-serif}main{max-width:1160px;margin:auto;padding:32px 22px 60px}
+header{text-align:center}.logo{font:46px Georgia;color:var(--red);letter-spacing:.14em}.tag{font-size:10px;letter-spacing:.2em}h1{font:30px Georgia;margin:25px 0 6px}.sub,.note{color:var(--muted)}
+.panel{max-width:980px;margin:25px auto 0;border-top:1px solid var(--line);padding-top:17px}.profile{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.field{border:1px solid var(--line);background:#fff8;padding:9px}
+.field label{font-size:10px;font-weight:bold;display:block}.field input{width:100%;font:20px Georgia;padding:5px;border:1px solid var(--line);margin-top:5px}
+button{width:100%;padding:14px;border:0;background:var(--red);color:white;font-weight:bold;letter-spacing:.05em;margin-top:12px}.status,.box{border:1px solid var(--line);background:#fff8;padding:11px;margin-top:10px;font-size:12px}.ok{color:var(--green);font-weight:bold}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.eyebrow{font-size:9px;letter-spacing:.12em;color:var(--muted);font-weight:bold}.season{font:26px Georgia;margin:4px 0}.flag{display:inline-block;padding:3px 6px;border:1px solid var(--line);font-size:10px;margin:2px 2px 2px 0}.warn{color:var(--amber);font-weight:bold}.pass{color:var(--green);font-weight:bold}
+h2{font:19px Georgia;border-bottom:1px solid var(--line);padding-bottom:5px;margin:18px 0 6px}table{width:100%;border-collapse:collapse;background:#fff8}th,td{padding:8px;border-bottom:1px solid var(--line);font-size:11px;text-align:left;vertical-align:top}th{font-size:9px;letter-spacing:.08em;color:var(--muted)}
+.contrib{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.pill{border:1px solid var(--line);padding:4px;font-size:10px}.note{font-size:11px;line-height:1.45;margin-top:12px}
+@media(max-width:800px){.profile,.summary{grid-template-columns:1fr 1fr}.contrib{grid-template-columns:1fr 1fr}}
+</style></head><body><main>
+<header><div class="logo">ŌRA</div><div class="tag">ORIGINAL. ROOTED. AUTHENTIC.</div><h1>Color Snapshot — Calibration & Guardrails</h1>
+<div class="sub">Step 5E-7: inspect why seasons rank where they do before freezing the scoring model.</div></header>
+<section class="panel">
+<div class="profile">
+<div class="field"><label>TEMPERATURE · −3 cool / +3 warm</label><input id="t" type="number" step=".01" min="-3" max="3" value="-1.50"></div>
+<div class="field"><label>VALUE · −3 light / +3 deep</label><input id="v" type="number" step=".01" min="-3" max="3" value="1.16"></div>
+<div class="field"><label>CHROMA · −3 muted / +3 bright</label><input id="c" type="number" step=".01" min="-3" max="3" value="-0.78"></div>
+<div class="field"><label>CONTRAST · −3 low / +3 high</label><input id="x" type="number" step=".01" min="-3" max="3" value="0.34"></div>
+</div><button id="run">RUN CALIBRATION CHECK ✦</button><div class="status" id="status"><span class="ok">✓ 5E-6 profile loaded.</span></div>
+<div id="out">
+<div class="summary">
+<div class="box"><div class="eyebrow">RAW PRIMARY</div><div class="season" id="primary"></div><div id="pmeta"></div></div>
+<div class="box"><div class="eyebrow">RAW MATHEMATICAL RUNNER-UP</div><div class="season" id="runner"></div><div id="rmeta"></div></div>
+<div class="box"><div class="eyebrow">LOGICAL ADJACENT SECONDARY</div><div class="season" id="secondary"></div><div id="smeta"></div></div>
+</div>
+<h2>Guardrail review</h2><div id="guards"></div>
+<h2>Why the top candidates ranked this way</h2>
+<table><thead><tr><th>Rank</th><th>Season</th><th>Distance</th><th>Dimension contributions to squared distance</th><th>Guardrail</th></tr></thead><tbody id="rows"></tbody></table>
+<p class="note"><b>Important:</b> guardrails in 5E-7 are diagnostic flags, not hidden score changes. They do not alter the ranking. A temperature-direction conflict is flagged only when the measured profile is meaningfully cool/warm (|Temperature| ≥ 1.0), the season target is meaningfully on the opposite side (|target| ≥ 0.8), and the directions disagree. This lets us identify suspicious candidates without forcing a preferred result.</p>
+</div></section></main>
+<script>
+const targets={"Light Spring":[1.5,-2.5,1,-1],"Warm Spring":[2.7,-1,1.5,0],"Bright Spring":[1,0,2.7,2],"Light Summer":[-1,-2.5,-.8,-1.8],"Cool Summer":[-2.7,-.5,-.5,-.3],"Soft Summer":[-.8,0,-2.7,-1.5],"Soft Autumn":[.8,.3,-2.7,-1],"Warm Autumn":[2.7,.8,-1,0],"Deep Autumn":[1,2.5,-.8,1],"Deep Winter":[-.8,2.5,.8,2],"Cool Winter":[-2.7,.7,1.5,1.5],"Bright Winter":[-1,0,2.8,2.7]};
+const weights={"Light Spring":[.2,.35,.25,.2],"Light Summer":[.2,.35,.2,.25],"Warm Spring":[.35,.2,.25,.2],"Warm Autumn":[.35,.2,.25,.2],"Cool Summer":[.35,.2,.25,.2],"Cool Winter":[.35,.15,.25,.25],"Soft Summer":[.25,.15,.35,.25],"Soft Autumn":[.25,.15,.35,.25],"Bright Spring":[.25,.15,.3,.3],"Bright Winter":[.25,.15,.3,.3],"Deep Autumn":[.2,.35,.2,.25],"Deep Winter":[.2,.35,.2,.25]};
+const adj={"Light Spring":["Light Summer","Warm Spring"],"Warm Spring":["Light Spring","Bright Spring","Warm Autumn"],"Bright Spring":["Warm Spring","Bright Winter"],"Light Summer":["Light Spring","Cool Summer","Soft Summer"],"Cool Summer":["Light Summer","Soft Summer","Cool Winter"],"Soft Summer":["Cool Summer","Soft Autumn","Light Summer"],"Soft Autumn":["Soft Summer","Warm Autumn","Deep Autumn"],"Warm Autumn":["Soft Autumn","Deep Autumn","Warm Spring"],"Deep Autumn":["Warm Autumn","Deep Winter","Soft Autumn"],"Deep Winter":["Deep Autumn","Cool Winter","Bright Winter"],"Cool Winter":["Cool Summer","Deep Winter","Bright Winter"],"Bright Winter":["Bright Spring","Cool Winter","Deep Winter"]};
+const $=x=>document.getElementById(x),cl=v=>Math.max(-3,Math.min(3,Number(v))),names=["Temperature","Value","Chroma","Contrast"];
+function calc(n,p){let q=targets[n],w=weights[n],parts=p.map((a,i)=>w[i]*(a-q[i])**2);return{n,parts,d:Math.sqrt(parts.reduce((a,b)=>a+b,0))}}
+function tempConflict(n,p){let pt=p[0],st=targets[n][0];return Math.abs(pt)>=1&&Math.abs(st)>=.8&&Math.sign(pt)!==Math.sign(st)}
+function run(){let p=[cl($("t").value),cl($("v").value),cl($("c").value),cl($("x").value)],all=Object.keys(targets).map(n=>calc(n,p)).sort((a,b)=>a.d-b.d),pri=all[0],runner=all[1],sec=adj[pri.n].map(n=>calc(n,p)).sort((a,b)=>a.d-b.d)[0];
+$("primary").textContent=pri.n;$("pmeta").innerHTML=`Distance <b>${pri.d.toFixed(3)}</b>`;
+$("runner").textContent=runner.n;$("rmeta").innerHTML=`Distance <b>${runner.d.toFixed(3)}</b>${adj[pri.n].includes(runner.n)?' · also logically adjacent':' · not in primary adjacency set'}`;
+$("secondary").textContent=sec.n;$("smeta").innerHTML=`Distance <b>${sec.d.toFixed(3)}</b> · closest approved adjacent`;
+let conflicts=all.filter(z=>tempConflict(z.n,p)),primaryConflict=tempConflict(pri.n,p),runnerMismatch=runner.n!==sec.n;
+$("guards").innerHTML=`<div class="box">${primaryConflict?'<span class="warn">⚠ Primary temperature-direction conflict.</span>':'<span class="pass">✓ Primary passes temperature-direction guardrail.</span>'}<br>${runnerMismatch?`<span class="warn">⚠ Raw runner-up (${runner.n}) differs from logical adjacent secondary (${sec.n}).</span>`:'<span class="pass">✓ Raw runner-up and logical adjacent secondary agree.</span>'}<br>${conflicts.length?`Opposite-temperature candidates flagged in full ranking: <b>${conflicts.map(z=>z.n).join(", ")}</b>.`:'No opposite-temperature candidates triggered the diagnostic threshold.'}</div>`;
+$("rows").innerHTML=all.slice(0,6).map((z,i)=>{let total=z.parts.reduce((a,b)=>a+b,0);let parts=z.parts.map((a,j)=>`<span class="pill">${names[j]} ${(total?100*a/total:0).toFixed(0)}%</span>`).join("");return `<tr><td>${i+1}</td><td><b>${z.n}</b>${z.n===pri.n?' · PRIMARY':z.n===runner.n?' · RAW RUNNER-UP':z.n===sec.n?' · ADJACENT SECONDARY':''}</td><td>${z.d.toFixed(3)}</td><td><div class="contrib">${parts}</div></td><td>${tempConflict(z.n,p)?'<span class="warn">⚠ opposite temp direction</span>':'<span class="pass">✓ no temp conflict</span>'}</td></tr>`}).join("");
+$("status").innerHTML='<span class="ok">✓ CALIBRATION CHECK COMPLETE.</span> Ranking is unchanged; diagnostics are now visible.'}
+$("run").onclick=run;run();
+</script></body></html>
