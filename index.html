@@ -2,99 +2,104 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot — Region Analysis Test</title>
+<title>Color Snapshot — 5E-3 Clean Sampling Test</title>
 <style>
 :root{--cream:#f5f0e7;--ink:#302f2d;--muted:#746f69;--red:#d95335;--line:#d8d0c5;--ok:#2f6948;--bad:#9c3e32}
 *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,sans-serif}
-main{max-width:1080px;margin:auto;padding:36px 22px 60px}header{text-align:center;margin-bottom:26px}
+main{max-width:1120px;margin:auto;padding:34px 22px 60px}header{text-align:center;margin-bottom:24px}
 .logo{font:46px Georgia,serif;letter-spacing:.14em;color:var(--red)}.tag{font-size:10px;letter-spacing:.2em}
-h1{font:30px Georgia,serif;margin:30px 0 6px}.sub,.small{color:var(--muted)}
+h1{font:30px Georgia,serif;margin:28px 0 6px}.sub,.small{color:var(--muted)}
 .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:28px}.photo{background:#ddd6cd;min-height:450px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 canvas{display:block;width:100%;height:auto}.placeholder{text-align:center;color:#777;padding:40px;line-height:1.5}
-.panel{border-top:1px solid var(--line);padding-top:18px}label{display:block;font-size:13px;font-weight:700;margin-bottom:8px}
-input[type=file],select{width:100%;font-size:14px;margin-bottom:15px;padding:7px}
+.panel{border-top:1px solid var(--line);padding-top:18px}label{display:block;font-size:13px;font-weight:700;margin-bottom:7px}
+input[type=file],select{width:100%;font-size:14px;margin-bottom:14px;padding:7px}
 button{width:100%;border:0;background:var(--red);color:#fff;padding:14px;font-weight:700;letter-spacing:.05em;cursor:pointer}button:disabled{opacity:.45}
-.status{margin-top:16px;border:1px solid var(--line);padding:13px;background:#fff8;line-height:1.4;font-size:13px}.ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
-.legend{display:flex;gap:7px;flex-wrap:wrap;margin:13px 0}.chip{border:1px solid var(--line);padding:5px 7px;font-size:11px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
-.results{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.metric{border:1px solid var(--line);background:#fff8;padding:9px;font-size:12px}.metric strong{display:block;font-size:17px;margin-top:3px}
-.small{font-size:11px;line-height:1.45;margin-top:14px}
+.status{margin-top:15px;border:1px solid var(--line);padding:13px;background:#fff8;line-height:1.4;font-size:13px}.ok{color:var(--ok);font-weight:700}.bad{color:var(--bad);font-weight:700}
+.legend{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.chip{border:1px solid var(--line);padding:5px 7px;font-size:11px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.metric{border:1px solid var(--line);background:#fff8;padding:9px;font-size:11px;min-width:0}
+.metric-head{display:flex;align-items:center;gap:8px}.swatch{width:34px;height:34px;border:1px solid #aaa;flex:0 0 auto}.metric strong{display:block;font-size:16px;margin:2px 0}
+.small{font-size:11px;line-height:1.45;margin-top:14px}.note{grid-column:1/-1}
 @media(max-width:780px){.grid{grid-template-columns:1fr}.photo{min-height:320px}.logo{font-size:38px}}
-</style>
-</head>
+</style></head>
 <body><main>
 <header><div class="logo">ŌRA</div><div class="tag">ORIGINAL. ROOTED. AUTHENTIC.</div>
-<h1>Color Snapshot — Region Analysis Test</h1>
-<div class="sub">Step 5E-2: identify usable skin, eye, brow and provisional hair regions before seasonal scoring.</div></header>
+<h1>Color Snapshot — Clean Sampling Test</h1>
+<div class="sub">Step 5E-3: tighten skin, iris, brow and hair samples before color scoring.</div></header>
 <section class="grid">
-<div class="photo"><div class="placeholder" id="placeholder">Choose a straight-on portrait.<br>This build visualizes what Color Snapshot is measuring.</div><canvas id="canvas" hidden></canvas></div>
+<div class="photo"><div class="placeholder" id="placeholder">Choose a straight-on portrait.<br>Colored outlines show only the areas being sampled.</div><canvas id="canvas" hidden></canvas></div>
 <div class="panel">
 <label for="file">Choose test photograph</label><input id="file" type="file" accept="image/*">
 <label for="hair">Is the hair color we see today close to your natural color?</label>
 <select id="hair"><option value="yes">Yes</option><option value="partial">Partially — highlights, gray, etc.</option><option value="no">No — significantly different</option></select>
-<button id="analyze" disabled>ANALYZE REGIONS ✦</button>
+<button id="analyze" disabled>ANALYZE CLEAN SAMPLES ✦</button>
 <div class="status" id="status" aria-live="polite"><strong>Engine:</strong> loading MediaPipe…</div>
-<div class="legend">
-<span class="chip"><i class="dot" style="background:#e34b3f"></i>Skin</span>
-<span class="chip"><i class="dot" style="background:#2d6cdf"></i>Eyes</span>
-<span class="chip"><i class="dot" style="background:#7b4bb7"></i>Brows</span>
-<span class="chip"><i class="dot" style="background:#2c8b57"></i>Hair candidate</span>
-</div>
+<div class="legend"><span class="chip"><i class="dot" style="background:#e34b3f"></i>Skin</span><span class="chip"><i class="dot" style="background:#2d6cdf"></i>Iris</span><span class="chip"><i class="dot" style="background:#7b4bb7"></i>Brows</span><span class="chip"><i class="dot" style="background:#2c8b57"></i>Hair candidate</span></div>
 <div class="results" id="results"></div>
-<div class="small">Hair is a provisional region inferred from face geometry, not a MediaPipe hair segmentation. This build intentionally does not assign a season. Temperature is not scored here.</div>
+<div class="small">This calibration build reports raw visual observations only. It does not infer a season or score Temperature. Hair remains provisional because Face Landmarker does not segment hair.</div>
 </div></section></main>
-
 <script type="module">
 import {FaceLandmarker,FilesetResolver} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
-const $=id=>document.getElementById(id), file=$("file"), hair=$("hair"), btn=$("analyze"), status=$("status"), canvas=$("canvas"), ctx=canvas.getContext("2d"), placeholder=$("placeholder"), results=$("results");
+const $=x=>document.getElementById(x),file=$("file"),hair=$("hair"),btn=$("analyze"),status=$("status"),canvas=$("canvas"),ctx=canvas.getContext("2d"),placeholder=$("placeholder"),results=$("results");
 let img=null,url=null,landmarker=null,ready=false;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-function stat(t){status.innerHTML=t} function update(){btn.disabled=!(ready&&img)}
-async function init(){try{const vision=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm");landmarker=await FaceLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",delegate:"CPU"},runningMode:"IMAGE",numFaces:1,minFaceDetectionConfidence:.5,minFacePresenceConfidence:.5});ready=true;stat('<span class="ok">✓ MediaPipe ready.</span><br>Choose a photograph and analyze the measurement regions.');update()}catch(e){stat('<span class="bad">Engine could not start.</span><br>'+esc(e.message||e))}}
-file.addEventListener("change",()=>{const f=file.files?.[0];img=null;results.innerHTML="";if(!f){update();return}if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(f);const im=new Image();im.onload=()=>{img=im;const s=Math.min(1,900/im.naturalWidth);canvas.width=Math.round(im.naturalWidth*s);canvas.height=Math.round(im.naturalHeight*s);ctx.drawImage(im,0,0,canvas.width,canvas.height);placeholder.hidden=true;canvas.hidden=false;stat(ready?'<span class="ok">✓ Photo loaded.</span><br>Ready to analyze regions.':'Photo loaded. Engine still loading…');update()};im.src=url});
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)); function stat(x){status.innerHTML=x} function update(){btn.disabled=!(ready&&img)}
+async function init(){try{const v=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm");landmarker=await FaceLandmarker.createFromOptions(v,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",delegate:"CPU"},runningMode:"IMAGE",numFaces:1,minFaceDetectionConfidence:.5,minFacePresenceConfidence:.5,outputFacialTransformationMatrixes:false});ready=true;stat('<span class="ok">✓ MediaPipe ready.</span><br>Choose a photo and inspect the clean samples.');update()}catch(e){stat('<span class="bad">Engine could not start.</span><br>'+esc(e.message||e))}}
+file.addEventListener("change",()=>{const f=file.files?.[0];img=null;results.innerHTML="";if(!f){update();return}if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(f);const im=new Image();im.onload=()=>{img=im;const s=Math.min(1,900/im.naturalWidth);canvas.width=Math.round(im.naturalWidth*s);canvas.height=Math.round(im.naturalHeight*s);ctx.drawImage(im,0,0,canvas.width,canvas.height);placeholder.hidden=true;canvas.hidden=false;stat(ready?'<span class="ok">✓ Photo loaded.</span><br>Ready for clean sampling.':'Photo loaded. Engine still loading…');update()};im.onerror=()=>stat('<span class="bad">Image could not be opened.</span>');im.src=url});
 function P(lm,i){return{x:lm[i].x*canvas.width,y:lm[i].y*canvas.height}}
 function ellipse(x,y,rx,ry,color){ctx.save();ctx.strokeStyle=color;ctx.lineWidth=3;ctx.setLineDash([7,5]);ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.stroke();ctx.restore()}
 function rect(x,y,w,h,color){ctx.save();ctx.strokeStyle=color;ctx.lineWidth=3;ctx.setLineDash([7,5]);ctx.strokeRect(x,y,w,h);ctx.restore()}
-function patchMean(x,y,w,h){
- x=Math.max(0,Math.round(x));y=Math.max(0,Math.round(y));w=Math.max(1,Math.min(canvas.width-x,Math.round(w)));h=Math.max(1,Math.min(canvas.height-y,Math.round(h)));
- const d=ctx.getImageData(x,y,w,h).data;let r=0,g=0,b=0,n=0;
- for(let i=0;i<d.length;i+=16){if(d[i+3]>0){r+=d[i];g+=d[i+1];b+=d[i+2];n++}}
- return n?{r:r/n,g:g/n,b:b/n}:null
+function rgb(c){return c?`rgb(${Math.round(c.r)},${Math.round(c.g)},${Math.round(c.b)})`:"#ddd"} function lum(c){return c?.r==null?null:.2126*c.r+.7152*c.g+.0722*c.b}
+function sampleEllipse(oc,cx,cy,rx,ry,mode="mean"){
+ const x0=clamp(Math.floor(cx-rx),0,canvas.width-1),x1=clamp(Math.ceil(cx+rx),1,canvas.width),y0=clamp(Math.floor(cy-ry),0,canvas.height-1),y1=clamp(Math.ceil(cy+ry),1,canvas.height);
+ const d=oc.getImageData(x0,y0,x1-x0,y1-y0).data, px=[];let k=0;
+ for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++,k+=4){const nx=(x-cx)/rx,ny=(y-cy)/ry;if(nx*nx+ny*ny<=1){const r=d[k],g=d[k+1],b=d[k+2],L=.2126*r+.7152*g+.0722*b;px.push({r,g,b,L})}}
+ if(!px.length)return null;
+ if(mode==="dark"){px.sort((a,b)=>a.L-b.L);px.splice(Math.ceil(px.length*.35));}
+ else if(mode==="iris"){px.sort((a,b)=>a.L-b.L);const lo=Math.floor(px.length*.12),hi=Math.max(lo+1,Math.floor(px.length*.58));px.splice(hi);px.splice(0,lo);}
+ let r=0,g=0,b=0;for(const p of px){r+=p.r;g+=p.g;b+=p.b}return{r:r/px.length,g:g/px.length,b:b/px.length}
 }
-function lum(c){return c?.r==null?null:.2126*c.r+.7152*c.g+.0722*c.b}
-function metric(name,val,note){return `<div class="metric">${name}<strong>${val}</strong><span>${note}</span></div>`}
-btn.addEventListener("click",()=>{if(!ready||!img)return;btn.disabled=true;results.innerHTML="";stat("<strong>Analyzing…</strong><br>Finding face-relative measurement zones.");
+function sampleRect(oc,x,y,w,h){
+ x=clamp(Math.round(x),0,canvas.width-1);y=clamp(Math.round(y),0,canvas.height-1);w=clamp(Math.round(w),1,canvas.width-x);h=clamp(Math.round(h),1,canvas.height-y);
+ const d=oc.getImageData(x,y,w,h).data, arr=[];for(let i=0;i<d.length;i+=16){const r=d[i],g=d[i+1],b=d[i+2],L=.2126*r+.7152*g+.0722*b;arr.push({r,g,b,L})}
+ // reject very dark/light extremes to reduce background/shadow contamination
+ arr.sort((a,b)=>a.L-b.L);const lo=Math.floor(arr.length*.15),hi=Math.max(lo+1,Math.floor(arr.length*.85)),use=arr.slice(lo,hi);let r=0,g=0,b=0;for(const p of use){r+=p.r;g+=p.g;b+=p.b}return use.length?{r:r/use.length,g:g/use.length,b:b/use.length}:null
+}
+function avg(cs){const a=cs.filter(Boolean);if(!a.length)return null;return{r:a.reduce((s,c)=>s+c.r,0)/a.length,g:a.reduce((s,c)=>s+c.g,0)/a.length,b:a.reduce((s,c)=>s+c.b,0)/a.length}}
+function card(name,c,note){const L=c?Math.round(lum(c)):"—";return `<div class="metric"><div class="metric-head"><span class="swatch" style="background:${rgb(c)}"></span><div>${name}<strong>${L}</strong></div></div><div>${note}</div></div>`}
+btn.addEventListener("click",()=>{if(!ready||!img)return;btn.disabled=true;results.innerHTML="";stat("<strong>Analyzing…</strong><br>Building conservative face-relative samples.");
 try{
- const out=landmarker.detect(img), faces=out?.faceLandmarks||[];if(!faces.length){stat('<span class="bad">No usable face detected.</span>');return}
+ const out=landmarker.detect(img),faces=out?.faceLandmarks||[];if(!faces.length){stat('<span class="bad">No usable face detected.</span>');return}
  const lm=faces[0];ctx.drawImage(img,0,0,canvas.width,canvas.height);
- const left=P(lm,234), right=P(lm,454), top=P(lm,10), chin=P(lm,152), nose=P(lm,1);
- const fw=Math.abs(right.x-left.x), fh=Math.abs(chin.y-top.y), cx=(left.x+right.x)/2;
- // conservative cheek skin zones
- const skinY=nose.y+fh*.08, skinRX=fw*.075, skinRY=fh*.065;
- const sx1=cx-fw*.22, sx2=cx+fw*.22;
- ellipse(sx1,skinY,skinRX,skinRY,"#e34b3f");ellipse(sx2,skinY,skinRX,skinRY,"#e34b3f");
- // eyes
- const le1=P(lm,33),le2=P(lm,133),re1=P(lm,362),re2=P(lm,263);
- const ley=(le1.y+le2.y)/2, rey=(re1.y+re2.y)/2, lex=(le1.x+le2.x)/2,rex=(re1.x+re2.x)/2;
- ellipse(lex,ley,Math.abs(le2.x-le1.x)*.58,fh*.035,"#2d6cdf");ellipse(rex,rey,Math.abs(re2.x-re1.x)*.58,fh*.035,"#2d6cdf");
- // brows, positioned above eyes
- ellipse(lex,ley-fh*.115,fw*.12,fh*.035,"#7b4bb7");ellipse(rex,rey-fh*.115,fw*.12,fh*.035,"#7b4bb7");
- // provisional upper/side hair candidate regions, deliberately outside forehead center
- const hx=cx-fw*.43, hy=top.y-fh*.19, hw=fw*.86, hh=fh*.18;
- rect(hx,hy,hw,hh,"#2c8b57");
- const sideW=fw*.13, sideH=fh*.38;
- rect(left.x-fw*.08,top.y+fh*.05,sideW,sideH,"#2c8b57");rect(right.x-sideW+fw*.08,top.y+fh*.05,sideW,sideH,"#2c8b57");
- // sample approximate rectangular cores after overlays are drawn? redraw source for sampling first is required; sample from original via offscreen canvas
+ const left=P(lm,234),right=P(lm,454),top=P(lm,10),chin=P(lm,152),nose=P(lm,1),fw=Math.abs(right.x-left.x),fh=Math.abs(chin.y-top.y),cx=(left.x+right.x)/2;
  const off=document.createElement("canvas");off.width=canvas.width;off.height=canvas.height;const oc=off.getContext("2d");oc.drawImage(img,0,0,off.width,off.height);
- function meanFromOff(x,y,w,h){x=Math.max(0,Math.round(x));y=Math.max(0,Math.round(y));w=Math.max(1,Math.min(off.width-x,Math.round(w)));h=Math.max(1,Math.min(off.height-y,Math.round(h)));const d=oc.getImageData(x,y,w,h).data;let r=0,g=0,b=0,n=0;for(let i=0;i<d.length;i+=16){r+=d[i];g+=d[i+1];b+=d[i+2];n++}return n?{r:r/n,g:g/n,b:b/n}:null}
- const skin1=meanFromOff(sx1-skinRX*.55,skinY-skinRY*.55,skinRX*1.1,skinRY*1.1), skin2=meanFromOff(sx2-skinRX*.55,skinY-skinRY*.55,skinRX*1.1,skinRY*1.1);
- const skinL=(lum(skin1)+lum(skin2))/2;
- const brow1=meanFromOff(lex-fw*.07,ley-fh*.13,fw*.14,fh*.04), brow2=meanFromOff(rex-fw*.07,rey-fh*.13,fw*.14,fh*.04), browL=(lum(brow1)+lum(brow2))/2;
- const hairTop=meanFromOff(hx+hw*.2,hy+hh*.15,hw*.6,hh*.55), hairL=lum(hairTop);
- const hairWeight=hair.value==="yes"?"normal":hair.value==="partial"?"reduced":"minimal";
- const contrast=Math.abs(skinL-browL);
- results.innerHTML=metric("Skin lightness",Math.round(skinL),"raw 0–255 observation")+metric("Brow contrast",Math.round(contrast),"difference from skin")+metric("Hair lightness",hairL==null?"—":Math.round(hairL),"provisional sample")+metric("Hair influence",hairWeight,hair.value==="no"?"natural-depth question will replace most visible-hair influence":"used later in weighted scoring");
- stat('<span class="ok">✓ REGION TEST COMPLETE.</span><br>Face landmarks were used to position skin, eye, brow and provisional hair measurement zones.');
-}catch(e){console.error(e);stat('<span class="bad">Region analysis could not complete.</span><br>'+esc(e.message||e))}
+ // CLEAN SKIN: upper outer cheek/temple + lower outer cheek, away from mouth/nose center.
+ const skinZones=[
+  [cx-fw*.29,nose.y-fh*.10,fw*.055,fh*.052],[cx+fw*.29,nose.y-fh*.10,fw*.055,fh*.052],
+  [cx-fw*.30,nose.y+fh*.16,fw*.06,fh*.055],[cx+fw*.30,nose.y+fh*.16,fw*.06,fh*.055]
+ ];
+ const skinSamples=[];for(const z of skinZones){ellipse(...z,"#e34b3f");skinSamples.push(sampleEllipse(oc,...z))}
+ const skinC=avg(skinSamples);
+ // IRISES: use iris landmark centers if available (468–477), tiny samples to avoid sclera/liner.
+ const li=[468,469,470,471,472].map(i=>P(lm,i)),ri=[473,474,475,476,477].map(i=>P(lm,i));
+ const center=a=>({x:a.reduce((s,p)=>s+p.x,0)/a.length,y:a.reduce((s,p)=>s+p.y,0)/a.length});
+ const lc=center(li),rc=center(ri),irx=fw*.032,iry=fh*.025;ellipse(lc.x,lc.y,irx,iry,"#2d6cdf");ellipse(rc.x,rc.y,irx,iry,"#2d6cdf");
+ const irisC=avg([sampleEllipse(oc,lc.x,lc.y,irx*.7,iry*.7,"iris"),sampleEllipse(oc,rc.x,rc.y,irx*.7,iry*.7,"iris")]);
+ // BROWS: landmark-relative narrow zones; darker percentile emphasizes brow hair over skin.
+ const le=P(lm,159),re=P(lm,386),browY1=le.y-fh*.105,browY2=re.y-fh*.105,browRx=fw*.115,browRy=fh*.025;
+ ellipse(le.x,browY1,browRx,browRy,"#7b4bb7");ellipse(re.x,browY2,browRx,browRy,"#7b4bb7");
+ const browC=avg([sampleEllipse(oc,le.x,browY1,browRx,browRy,"dark"),sampleEllipse(oc,re.x,browY2,browRx,browRy,"dark")]);
+ // HAIR: smaller patches; upper patches shifted above face top + lateral patches outside temples.
+ const hairRects=[
+  [cx-fw*.30,top.y-fh*.20,fw*.22,fh*.10],[cx+fw*.08,top.y-fh*.20,fw*.22,fh*.10],
+  [left.x-fw*.10,top.y+fh*.02,fw*.10,fh*.20],[right.x,top.y+fh*.02,fw*.10,fh*.20]
+ ];
+ const hairSamples=[];for(const z of hairRects){rect(...z,"#2c8b57");hairSamples.push(sampleRect(oc,...z))}
+ const hairC=avg(hairSamples),skinL=lum(skinC),irisL=lum(irisC),browL=lum(browC),hairL=lum(hairC);
+ const eyeContrast=skinL!=null&&irisL!=null?Math.round(Math.abs(skinL-irisL)):"—",browContrast=skinL!=null&&browL!=null?Math.round(Math.abs(skinL-browL)):"—";
+ const influence=hair.value==="yes"?"Normal":hair.value==="partial"?"Reduced":"Minimal";
+ results.innerHTML=card("Skin sample",skinC,"raw lightness 0–255")+card("Iris sample",irisC,`skin/iris contrast: ${eyeContrast}`)+card("Brow sample",browC,`skin/brow contrast: ${browContrast}`)+card("Hair sample",hairC,`visible-hair influence: ${influence}`)+`<div class="metric note"><strong>Visual check</strong>The four swatches should resemble the actual sampled feature. If a swatch obviously looks like lipstick, skin, background, eye white, or clothing, we reject that region before scoring.</div>`;
+ stat('<span class="ok">✓ CLEAN SAMPLING COMPLETE.</span><br>Inspect both the colored outlines and the four sample swatches before trusting the measurements.');
+}catch(e){console.error(e);stat('<span class="bad">Sampling could not complete.</span><br>'+esc(e.message||e))}
 finally{update()}
 });
 init();
