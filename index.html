@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot — 5E-8.3 Calibration Data Capture</title>
+<title>Color Snapshot — 5E-8.4 Hybrid Attribute Calibration</title>
 <style>
 :root{--cream:#f5f0e7;--paper:#fbf8f2;--red:#db5335;--ink:#302d2a;--muted:#746e68;--line:#d8d0c5;--green:#286b49;--amber:#996317;--blue:#2867a8;--purple:#7650b5}
 *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Arial,sans-serif}main{max-width:1240px;margin:auto;padding:28px 22px 60px}
@@ -15,7 +15,7 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 </style></head><body><main>
 <header><div class="logo">ŌRA</div><div class="tag">ORIGINAL. ROOTED. AUTHENTIC.</div>
 <h1>Color Snapshot — Integrated Calibration Test Bench</h1>
-<div class="sub">Step 5E-8.3: preserve raw photo measurements, questionnaire evidence, fused dimensions, validation status, and seasonal scoring in one calibration record.</div></header>
+<div class="sub">Step 5E-8.4: photo measures skin + validated brows; host supplies natural hair and eye attributes; guided questions complete the four-dimensional profile.</div></header>
 
 <div class="grid">
 <section>
@@ -23,15 +23,26 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 <label>Tester ID</label><input id="tester" value="Tester 01">
 <label>Choose test photograph</label><input id="file" type="file" accept="image/jpeg,image/png,image/webp">
 <div class="photo" id="photoBox"><span id="placeholder">Choose a straight-on portrait</span><img id="img"><canvas id="overlay"></canvas></div>
-<label>Is visible hair close to natural color?</label><select id="hair"><option value="1">Yes</option><option value=".35">Partially — highlights, gray, etc.</option><option value="0">No — significantly different</option></select>
+<label>Natural hair depth</label>
+<select id="hairDepth">
+<option value="-2.5">Very light blonde</option><option value="-1.7">Blonde</option><option value="-0.8">Dark blonde / light brown</option><option value="0">Medium brown</option><option value="1.2">Dark brown</option><option value="2">Very dark brown / black</option><option value="-1.0">Gray / silver / white</option><option value="0.2">Red / auburn</option>
+</select>
+<label>Natural hair undertone</label>
+<select id="hairTone"><option value="0">Neutral / not sure</option><option value="1">Warm / golden / copper</option><option value="-1">Cool / ashy</option></select>
+<label>Eye color</label>
+<select id="eyeColor">
+<option value="brown">Brown</option><option value="darkbrown">Very dark brown</option><option value="hazel">Hazel</option><option value="green">Green</option><option value="blue">Blue</option><option value="gray">Gray</option>
+</select>
+<label>Eye depth / clarity</label>
+<select id="eyeDepth"><option value="0">Medium / not sure</option><option value="-1">Light / soft</option><option value="1">Deep / clear</option></select>
 <label>Makeup level</label><select id="makeup"><option value="1">None / minimal</option><option value=".8">Some</option><option value=".55">Full</option></select>
 <button class="wide" id="measure">ANALYZE PHOTO + MEASURE ✦</button>
 <div class="status" id="measureStatus">Select a photograph. Seasonal scoring stays locked until measurement succeeds.</div>
 </div>
 
 <div class="card" style="margin-top:12px">
-<h2>Clean samples · CIELAB</h2><div class="samples" id="samples">
-<div class="sample">Skin<br><span class="tiny">waiting</span></div><div class="sample">Iris<br><span class="tiny">waiting</span></div><div class="sample">Brows<br><span class="tiny">waiting</span></div><div class="sample">Hair<br><span class="tiny">waiting</span></div>
+<h2>Photo samples · CIELAB</h2><div class="samples" id="samples">
+<div class="sample">Skin<br><span class="tiny">waiting</span></div><div class="sample">Brows<br><span class="tiny">waiting</span></div><div class="sample">Hair input<br><span class="tiny">manual</span></div><div class="sample">Eye input<br><span class="tiny">manual</span></div>
 </div>
 <div class="diag" id="sampleDiag">Validation has not run. Each region must pass plausibility checks before it contributes.</div>
 <h2>Automatic photo measurements</h2>
@@ -84,7 +95,7 @@ table{width:100%;border-collapse:collapse;background:#fff8;margin-top:10px}th,td
 <script type="module">
 import {FaceLandmarker,FilesetResolver} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 const $=id=>document.getElementById(id), clamp=n=>Math.max(-3,Math.min(3,n));
-let landmarker=null, photo=null, measurement=null, current=null, records=JSON.parse(localStorage.getItem("cs5e83")||"[]");
+let landmarker=null, photo=null, measurement=null, current=null, records=JSON.parse(localStorage.getItem("cs5e84")||"[]");
 
 async function init(){
  try{
@@ -138,27 +149,20 @@ $("measure").onclick=async()=>{
  try{
   const img=$("img"),work=document.createElement("canvas"),w=img.naturalWidth,h=img.naturalHeight;work.width=w;work.height=h;let ctx=work.getContext("2d",{willReadFrequently:true});ctx.drawImage(img,0,0,w,h);
   let res=landmarker.detect(img);if(!res.faceLandmarks?.length)throw Error("No face detected. Try a clearer straight-on portrait.");let lm=res.faceLandmarks[0];
-  // Clean regions: multiple candidates; invalid samples are excluded rather than silently used.
-  let lc=p(lm,234,w,h),rc=p(lm,454,w,h),le=p(lm,468,w,h),re=p(lm,473,w,h),lb=p(lm,70,w,h),rb=p(lm,300,w,h),top=p(lm,10,w,h),ltemp=p(lm,127,w,h),rtemp=p(lm,356,w,h);
+  // Hybrid engine: photograph measures skin and brows only.
+  // Hair and eye attributes come from explicit host/guest input.
+  let lc=p(lm,234,w,h),rc=p(lm,454,w,h),lb=p(lm,70,w,h),rb=p(lm,300,w,h);
   let faceW=Math.abs(rc[0]-lc[0]),rad=Math.max(4,Math.round(faceW*.035));
 
   let skinCandidates=[
     sampleCircle(ctx,lc[0]+faceW*.15,lc[1],rad),
     sampleCircle(ctx,rc[0]-faceW*.15,rc[1],rad),
-    sampleCircle(ctx,lc[0]+faceW*.21,lc[1]-rad*.35,rad*.8),
-    sampleCircle(ctx,rc[0]-faceW*.21,rc[1]-rad*.35,rad*.8)
+    sampleCircle(ctx,lc[0]+faceW*.21,lc[1]-rad*.35,Math.max(3,Math.round(rad*.8))),
+    sampleCircle(ctx,rc[0]-faceW*.21,rc[1]-rad*.35,Math.max(3,Math.round(rad*.8)))
   ].map(validateSkin);
   let goodSkin=skinCandidates.filter(z=>z.valid);
   if(goodSkin.length<2) throw Error("Skin sampling was not reliable enough. Use a clearer, evenly lit portrait.");
-  let skin=medianSample(goodSkin); skin.valid=true; skin.reason="validated";
-
-  let irisCandidates=[
-    sampleCircle(ctx,le[0],le[1],Math.max(2,Math.round(rad*.42))),
-    sampleCircle(ctx,re[0],re[1],Math.max(2,Math.round(rad*.42)))
-  ].map(validateIris);
-  let goodIris=irisCandidates.filter(z=>z.valid);
-  let iris=goodIris.length?medianSample(goodIris):irisCandidates[0];
-  if(!goodIris.length){iris.valid=false;iris.reason="no credible iris sample"} else {iris.valid=true;iris.reason="validated"}
+  let skin=medianSample(goodSkin); skin.valid=true; skin.reason=`validated (${goodSkin.length}/4 candidates)`;
 
   let browCandidates=[
     sampleCircle(ctx,lb[0],lb[1],Math.max(3,Math.round(rad*.62))),
@@ -166,62 +170,63 @@ $("measure").onclick=async()=>{
   ].map(validateBrow);
   let goodBrow=browCandidates.filter(z=>z.valid);
   let brow=goodBrow.length?medianSample(goodBrow):browCandidates[0];
-  if(!goodBrow.length){brow.valid=false;brow.reason="no credible brow sample"} else {brow.valid=true;brow.reason="validated"}
-
-  // Hair: sample several plausible zones and reject extreme/contaminated candidates.
-  let hr=Math.max(6,Math.round(faceW*.075));
-  let hairCandidates=[
-    sampleRect(ctx,top[0]-hr*.7,Math.max(0,top[1]-hr*2.0),hr*1.4,hr*.75),
-    sampleCircle(ctx,ltemp[0]-hr*.22,ltemp[1]-hr*.10,Math.max(3,Math.round(hr*.42))),
-    sampleCircle(ctx,rtemp[0]+hr*.22,rtemp[1]-hr*.10,Math.max(3,Math.round(hr*.42))),
-    sampleCircle(ctx,top[0]-hr*.8,Math.max(hr,top[1]-hr*.7),Math.max(3,Math.round(hr*.35))),
-    sampleCircle(ctx,top[0]+hr*.8,Math.max(hr,top[1]-hr*.7),Math.max(3,Math.round(hr*.35)))
-  ].map(z=>validateHair(z,skin));
-  let goodHair=hairCandidates.filter(z=>z.valid);
-  let hair=goodHair.length?medianSample(goodHair):hairCandidates[0];
-  if(!goodHair.length){hair.valid=false;hair.reason="unreliable — excluded"} else {hair.valid=true;hair.reason=`validated (${goodHair.length}/${hairCandidates.length} candidates)`}
+  if(!goodBrow.length){brow.valid=false;brow.reason="unreliable — excluded"}else{brow.valid=true;brow.reason=`validated (${goodBrow.length}/2 candidates)`}
 
   let faceRatio=faceW/w, skinL=skin.lab[0];
-  let coreCount=[skin,iris,brow].filter(z=>z.valid).length;
-  let quality=(faceRatio>=.22&&skinL>=28&&skinL<=88&&coreCount>=2)?"PASS":"RETAKE";
+  let quality=(faceRatio>=.22&&skinL>=28&&skinL<=88)?"PASS":"RETAKE";
 
-  // Measurement repair: only validated regions contribute.
-  // Keep the original 5E-4 mapping frozen; repair the inputs, not the seasonal targets.
-  let requestedHairWeight=Number($("hair").value);
-  let hw=(hair.valid?requestedHairWeight:0);
-  let lParts=[skin];
-  if(iris.valid)lParts.push(iris);
-  if(brow.valid)lParts.push(brow);
-  let lNum=lParts.reduce((a,z)=>a+z.lab[0],0)+hw*hair.lab[0];
-  let lDen=lParts.length+hw;
-  let weightedL=lNum/lDen;
-  let value=clamp((58-weightedL)/10);
+  // Convert explicit natural attributes to analytic depth cues.
+  let hairDepth=Number($("hairDepth").value);
+  let hairTone=Number($("hairTone").value);
+  let eyeKey=$("eyeColor").value, eyeAdj=Number($("eyeDepth").value);
+  let eyeBase={blue:-1.4,gray:-1.2,green:-.8,hazel:0,brown:.7,darkbrown:1.5}[eyeKey];
+  let eyeDepth=clamp(eyeBase+eyeAdj*.45);
 
-  let sepParts=[];
-  if(iris.valid)sepParts.push(Math.abs(skin.lab[0]-iris.lab[0]));
-  if(brow.valid)sepParts.push(Math.abs(skin.lab[0]-brow.lab[0]));
-  let sepNum=sepParts.reduce((a,z)=>a+z,0)+(hw?hw*Math.abs(skin.lab[0]-hair.lab[0]):0);
-  let sepDen=sepParts.length+(hw?hw:0);
-  let separation=sepDen?sepNum/sepDen:0;
-  let contrast=clamp((separation-30)/12);
+  // Skin lightness is photo-derived. Map L* to the same -3 light / +3 deep axis.
+  let skinDepth=clamp((62-skinL)/10);
 
-  let cParts=[skin];
-  if(iris.valid)cParts.push(iris);
-  if(brow.valid)cParts.push(brow);
-  let cNum=cParts.reduce((a,z)=>a+z.C,0)+(hw?hw*hair.C:0);
-  let cDen=cParts.length+(hw?hw:0);
-  let weightedC=cNum/cDen;
-  let chroma=clamp((weightedC-22)/7);
+  // Brow depth is used only when its sampled value is credibly darker than skin.
+  // Otherwise exclude it rather than pretending skin pixels are brow.
+  let browDepth=null;
+  if(brow.valid && (skin.lab[0]-brow.lab[0])>=5){
+    browDepth=clamp((62-brow.lab[0])/10);
+  }else{
+    brow.valid=false;
+    brow.reason="not sufficiently distinct from skin — excluded";
+  }
 
-  measurement={value,contrast,chroma,quality,samples:{skin,iris,brow,hair},weightedL,separation,weightedC};
-  $("samples").innerHTML=swatch(skin,"Skin")+swatch(iris,"Iris")+swatch(brow,"Brows")+swatch(hair,"Hair");
-  let excluded=[["Skin",skin],["Iris",iris],["Brows",brow],["Hair",hair]].filter(([n,z])=>!z.valid).map(([n])=>n);
-  $("sampleDiag").innerHTML=excluded.length
-    ? `<span class="warn">⚠ EXCLUDED:</span> ${excluded.join(", ")}. Measurements were renormalized without those regions.`
-    : `<span class="pass">✓ ALL FOUR REGIONS VALIDATED.</span> Only validated samples contributed.`;
+  // VALUE: natural overall coloring from skin + stated hair + stated eyes (+ credible brow).
+  let depthParts=[skinDepth,hairDepth,eyeDepth];
+  if(browDepth!==null)depthParts.push(browDepth);
+  let value=clamp(depthParts.reduce((a,z)=>a+z,0)/depthParts.length);
+
+  // CONTRAST: spread between lightest/deepest natural features, normalized to -3..+3.
+  let naturalDepths=[skinDepth,hairDepth,eyeDepth];
+  if(browDepth!==null)naturalDepths.push(browDepth);
+  let range=Math.max(...naturalDepths)-Math.min(...naturalDepths);
+  let contrast=clamp((range-2.2)*1.15);
+
+  // CHROMA photo contribution: skin C* only, deliberately conservative.
+  // Eye/hair color saturation is not inferred from pixels in hybrid mode.
+  let weightedC=skin.C;
+  let chroma=clamp((weightedC-22)/9);
+
+  let weightedL=skin.lab[0], separation=range;
+  measurement={
+    value,contrast,chroma,quality,skinDepth,hairDepth,hairTone,eyeDepth,
+    samples:{skin,brow},weightedL,separation,weightedC
+  };
+  let hairText=$("hairDepth").options[$("hairDepth").selectedIndex].text+" · "+$("hairTone").options[$("hairTone").selectedIndex].text;
+  let eyeText=$("eyeColor").options[$("eyeColor").selectedIndex].text+" · "+$("eyeDepth").options[$("eyeDepth").selectedIndex].text;
+  $("samples").innerHTML=swatch(skin,"Skin")+swatch(brow,"Brows")
+    +`<div class="sample"><b>Hair INPUT</b><br><span class="tiny">${hairText}<br>depth ${hairDepth.toFixed(2)}</span></div>`
+    +`<div class="sample"><b>Eyes INPUT</b><br><span class="tiny">${eyeText}<br>depth ${eyeDepth.toFixed(2)}</span></div>`;
+  $("sampleDiag").innerHTML=brow.valid
+    ? `<span class="pass">✓ HYBRID INPUT READY.</span> Skin + brows measured; natural hair + eyes supplied explicitly.`
+    : `<span class="warn">⚠ BROWS EXCLUDED.</span> Skin measured; natural hair + eyes supplied explicitly. Value/contrast were renormalized without brows.`;
   $("mv").textContent=(value>=0?"+":"")+value.toFixed(2);$("mc").textContent=(chroma>=0?"+":"")+chroma.toFixed(2);$("mx").textContent=(contrast>=0?"+":"")+contrast.toFixed(2);
   $("quality").innerHTML=quality==="PASS"?`<span class="pass">✓ PHOTO QUALITY PASS.</span> Face detected; exposure and face size are usable.`:`<span class="warn">⚠ RETAKE.</span> Exposure or face size is outside the calibration gate. Seasonal scoring remains locked.`;
-  if(quality==="PASS"){$("score").disabled=false;$("questionCard").classList.remove("locked");$("measureStatus").innerHTML=`<span class="pass">✓ MEASUREMENT COMPLETE.</span> Weighted L*: ${weightedL.toFixed(1)} · feature separation: ${separation.toFixed(1)} · weighted C*: ${weightedC.toFixed(1)}`}
+  if(quality==="PASS"){$("score").disabled=false;$("questionCard").classList.remove("locked");$("measureStatus").innerHTML=`<span class="pass">✓ HYBRID MEASUREMENT COMPLETE.</span> Skin L*: ${weightedL.toFixed(1)} · natural-depth range: ${separation.toFixed(2)} · skin C*: ${weightedC.toFixed(1)}`}
   else{$("score").disabled=true;$("questionCard").classList.add("locked")}
  }catch(e){measurement=null;$("score").disabled=true;$("measureStatus").innerHTML='<span class="warn">Measurement could not complete.</span> '+e.message}
 };
@@ -235,20 +240,29 @@ $("score").onclick=()=>{
  if(!measurement||measurement.quality!=="PASS")return;
  let qt=availableAvg([$ ("q1").value,$("q2").value]), qc=$("q3").value==="na"?null:Number($("q3").value), qx=$("q4").value==="na"?null:Number($("q4").value);
  // Temperature remains questionnaire-led because 5E-4 intentionally withheld it.
- let t=qt===null?0:clamp(qt), v=measurement.value, c=qc===null?measurement.chroma:clamp(.60*measurement.chroma+.40*qc), x=qx===null?measurement.contrast:clamp(.80*measurement.contrast+.20*qx), p=[t,v,c,x];
+ let hairTemp=measurement.hairTone;
+ let t;
+ if(qt===null) t=clamp(hairTemp*.75);
+ else t=clamp(.85*qt+.15*hairTemp);
+ let v=measurement.value;
+ let c=qc===null?measurement.chroma:clamp(.55*measurement.chroma+.45*qc);
+ let x=qx===null?measurement.contrast:clamp(.75*measurement.contrast+.25*qx);
+ let p=[t,v,c,x];
  let all=Object.keys(targets).map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d),pri=all[0],run=all[1],sec=adj[pri.n].map(n=>({n,d:dist(n,p)})).sort((a,b)=>a.d-b.d)[0];
  current={
    p,pri,run,sec,temp:conflict(pri.n,p),quality:measurement.quality,
    photo:{value:measurement.value,chroma:measurement.chroma,contrast:measurement.contrast,
-          weightedL:measurement.weightedL,weightedC:measurement.weightedC,separation:measurement.separation},
+          weightedL:measurement.weightedL,weightedC:measurement.weightedC,separation:measurement.separation,
+          skinDepth:measurement.skinDepth},
    questions:{q1:$("q1").value,q2:$("q2").value,q3:$("q3").value,q4:$("q4").value},
    validation:{
      skin:measurement.samples.skin.valid!==false,
-     iris:measurement.samples.iris.valid!==false,
-     brow:measurement.samples.brow.valid!==false,
-     hair:measurement.samples.hair.valid!==false
+     brow:measurement.samples.brow.valid!==false
    },
-   hairSetting:$("hair").options[$("hair").selectedIndex].text,
+   hairSetting:$("hairDepth").options[$("hairDepth").selectedIndex].text,
+   hairToneSetting:$("hairTone").options[$("hairTone").selectedIndex].text,
+   eyeSetting:$("eyeColor").options[$("eyeColor").selectedIndex].text,
+   eyeDepthSetting:$("eyeDepth").options[$("eyeDepth").selectedIndex].text,
    makeupSetting:$("makeup").options[$("makeup").selectedIndex].text
   };
  $("primary").textContent=pri.n;$("pd").textContent="Distance "+pri.d.toFixed(3);$("runner").textContent=run.n;$("rd").textContent="Distance "+run.d.toFixed(3);$("secondary").textContent=sec.n;$("sd").textContent="Distance "+sec.d.toFixed(3);
@@ -275,6 +289,9 @@ $("save").onclick=()=>{if(!current)return;records.push({
  questions:current.questions,
  validation:current.validation,
  hairSetting:current.hairSetting,
+ hairToneSetting:current.hairToneSetting,
+ eyeSetting:current.eyeSetting,
+ eyeDepthSetting:current.eyeDepthSetting,
  makeupSetting:current.makeupSetting,
  p:current.p,
  primary:current.pri.n,
@@ -286,12 +303,12 @@ $("save").onclick=()=>{if(!current)return;records.push({
  temp:current.temp,
  expected:$("expected").value,
  reaction:$("reaction").value
-});localStorage.setItem("cs5e83",JSON.stringify(records));render();$("tester").value="Tester "+String(records.length+1).padStart(2,"0");$("save").disabled=true}
-$("clear").onclick=()=>{if(confirm("Clear this browser's 5E-8.3 calibration log?")){records=[];localStorage.removeItem("cs5e83");render()}}
+});localStorage.setItem("cs5e84",JSON.stringify(records));render();$("tester").value="Tester "+String(records.length+1).padStart(2,"0");$("save").disabled=true}
+$("clear").onclick=()=>{if(confirm("Clear this browser's 5E-8.4 calibration log?")){records=[];localStorage.removeItem("cs5e84");render()}}
 $("csv").onclick=()=>{
  let h=[
- "Tester","Quality","HairSetting","MakeupSetting",
- "SkinUsed","IrisUsed","BrowUsed","HairUsed",
+ "Tester","Quality","NaturalHairDepth","HairUndertone","EyeColor","EyeDepthClarity","MakeupSetting",
+ "SkinUsed","BrowUsed",
  "PhotoValue","PhotoChroma","PhotoContrast","WeightedL","WeightedC","FeatureSeparation",
  "Q1_Metal","Q2_ColorFamily","Q3_ChromaPreference","Q4_Contrast",
  "FusedTemperature","FusedValue","FusedChroma","FusedContrast",
@@ -299,8 +316,8 @@ $("csv").onclick=()=>{
  "TemperatureFlag","Expected","Reaction"
  ];
  let rows=records.map(r=>[
- r.tester,r.quality,r.hairSetting,r.makeupSetting,
- r.validation?.skin,r.validation?.iris,r.validation?.brow,r.validation?.hair,
+ r.tester,r.quality,r.hairSetting,r.hairToneSetting,r.eyeSetting,r.eyeDepthSetting,r.makeupSetting,
+ r.validation?.skin,r.validation?.brow,
  r.photo?.value,r.photo?.chroma,r.photo?.contrast,r.photo?.weightedL,r.photo?.weightedC,r.photo?.separation,
  r.questions?.q1,r.questions?.q2,r.questions?.q3,r.questions?.q4,
  ...r.p,r.primary,r.primaryDistance,r.runner,r.runnerDistance,r.secondary,r.secondaryDistance,
@@ -310,7 +327,7 @@ $("csv").onclick=()=>{
  csv=[h,...rows].map(a=>a.map(esc).join(",")).join("\n"),
  a=document.createElement("a");
  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
- a.download="color_snapshot_5E8_3_calibration_data.csv";
+ a.download="color_snapshot_5E8_4_hybrid_calibration_data.csv";
  a.click()
 }
 render();
