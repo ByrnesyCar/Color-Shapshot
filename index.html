@@ -427,7 +427,7 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
       </div>
       <label for="snapshotUrl">Acrobat share link</label>
       <input id="snapshotUrl" type="url" inputmode="url" autocomplete="off" placeholder="https://acrobat.adobe.com/...">
-      <div class="field-note">Paste the share link for this guest’s PDF only. Open the link once yourself before sending.</div>
+      <div class="field-note">The PDF print dialog will suggest a guest-specific name such as <strong>Color-Snapshot-Rebecca-Cool-Summer-20260917.pdf</strong>. Paste the share link for this guest’s PDF only, and open the link once yourself before sending.</div>
       <div class="delivery-actions">
         <button id="sendSnapshotBtn" type="button" onclick="sendColorSnapshotEmail()">2 · Email My Color Snapshot</button>
       </div>
@@ -849,7 +849,19 @@ function createColorSnapshotPDF(){
  document.getElementById('pdfSheet').style.display='block';
  const printable=[...document.querySelectorAll('#pdfSheet img')];
  Promise.all(printable.map(im=>im.decode?im.decode().catch(()=>{}):Promise.resolve())).then(()=>{
-   setTimeout(()=>{window.print();setTimeout(()=>document.getElementById('pdfSheet').style.display='none',500)},180);
+   const previousTitle=document.title;
+   const safeName=(guest.firstName||'Guest').trim().replace(/[^a-zA-Z0-9-]+/g,'-').replace(/^-+|-+$/g,'')||'Guest';
+   const safeSeason=(r.primary||'Color-Snapshot').replace(/[^a-zA-Z0-9-]+/g,'-').replace(/^-+|-+$/g,'');
+   const today=new Date();
+   const dateStamp=today.getFullYear()+String(today.getMonth()+1).padStart(2,'0')+String(today.getDate()).padStart(2,'0');
+   document.title='Color-Snapshot-'+safeName+'-'+safeSeason+'-'+dateStamp;
+   setTimeout(()=>{
+     window.print();
+     setTimeout(()=>{
+       document.title=previousTitle;
+       document.getElementById('pdfSheet').style.display='none';
+     },500);
+   },180);
  });
 }
 
