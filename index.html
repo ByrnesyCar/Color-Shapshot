@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot by ŌRA Salon · 5F-5.1a</title>
+<title>Color Snapshot by ŌRA Salon · 5F-5.1b</title>
 <style>
 :root {
   --ora-red:#ef1016;
@@ -88,7 +88,7 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
 .engine-note{font-size:11px;color:var(--muted);margin-top:18px;line-height:1.5}
 
 .delivery-card{margin-top:26px;padding:20px;border:1px solid var(--line);background:#fffaf4}
-.delivery-card h3{font-family:Georgia,"Times New Roman",serif;font-size:25px;font-weight:400;margin:0 0 8px}
+.delivery-card h3{font-family:Georgia,"Times New Roman",serif;font-size:25px;font-weight:400;margin:0 0 6px}
 .delivery-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .delivery-actions button{margin-top:0}
 .consent-row{display:flex;gap:10px;align-items:flex-start;margin-top:18px;font-size:12px;line-height:1.5;color:var(--muted)}
@@ -97,44 +97,53 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
 .done-screen .logo-small{width:150px;margin:0 auto 26px;display:block}
 
 .pdf-sheet{display:none}
-.pdf-page{background:#fff;color:#171513;width:100%;max-width:760px;margin:0 auto;padding:34px 38px;box-sizing:border-box;page-break-after:always;min-height:980px}
-.pdf-page:last-child{page-break-after:auto}
-.pdf-brand{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ded5ca;padding-bottom:15px;margin-bottom:22px}
+.pdf-page{background:#fff;color:#171513;width:100%;max-width:760px;margin:0 auto;padding:26px 34px;box-sizing:border-box;break-inside:avoid;page-break-inside:avoid}
+.pdf-page:first-child{break-after:page;page-break-after:always}
+.pdf-page:last-child{break-after:auto;page-break-after:auto}
+.pdf-brand{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ded5ca;padding-bottom:15px;margin-bottom:16px}
 .pdf-brand img{width:120px}
 .pdf-kicker{text-transform:uppercase;letter-spacing:.16em;font-size:10px;color:var(--ora-red);font-weight:700}
 .pdf-title{font-family:Georgia,"Times New Roman",serif;font-size:43px;font-weight:400;margin:6px 0}
 .pdf-sub{font-family:Georgia,"Times New Roman",serif;font-size:18px;color:#6d665f;margin-bottom:18px}
-.drape-wrap{position:relative;width:330px;height:365px;margin:18px auto 22px;overflow:hidden;background:#f4efe7;border-radius:165px 165px 24px 24px}
+.drape-wrap{position:relative;width:330px;height:345px;margin:12px auto 14px;overflow:hidden;background:#f4efe7;border-radius:165px 165px 24px 24px}
 .drape-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .drape{position:absolute;bottom:-20px;width:60%;height:47%;border-radius:70% 70% 0 0;opacity:.96;box-shadow:inset 0 10px 20px rgba(255,255,255,.15)}
 .drape.left{left:-9%;transform:rotate(13deg)}
 .drape.right{right:-9%;transform:rotate(-13deg)}
 .drape.center{left:25%;width:50%;height:38%;bottom:-25px;border-radius:60% 60% 0 0}
-.drape-img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:contain!important;z-index:3!important;pointer-events:none}
-.pdf-palette{display:grid;grid-template-columns:repeat(12,1fr);gap:5px;margin:16px 0 22px}
+.drape-img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:contain!important;pointer-events:none}
+#drape1{z-index:3!important}
+#drape2{z-index:3!important}
+#drape3{z-index:4!important}
+.pdf-palette{display:grid;grid-template-columns:repeat(12,1fr);gap:5px;margin:10px 0 14px}
 .pdf-palette i{aspect-ratio:1;border-radius:50%;border:1px solid rgba(0,0,0,.06)}
 .pdf-palette img{width:100%;display:block}
 .beauty-swatches img{width:34px;height:34px;display:block}
-.pdf-info{display:grid;grid-template-columns:1fr 1fr;gap:14px 28px}
-.pdf-info div{border-top:1px solid #e7dfd6;padding-top:10px}
+.pdf-info{display:grid;grid-template-columns:1fr 1fr;gap:9px 24px}
+.pdf-info div{border-top:1px solid #e7dfd6;padding-top:7px}
 .pdf-info b,.beauty-cat b{display:block;text-transform:uppercase;letter-spacing:.12em;font-size:9px;color:var(--ora-red);margin-bottom:5px}
-.beauty-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:25px}
-.beauty-cat{border-top:1px solid #ded5ca;padding-top:12px}
+.beauty-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.beauty-cat{border-top:1px solid #ded5ca;padding-top:9px}
 .beauty-swatches{display:flex;gap:7px;margin:10px 0}
 .beauty-swatches i{width:34px;height:34px;border-radius:50%;border:1px solid rgba(0,0,0,.08)}
 .beauty-cat span{font-size:13px;line-height:1.45;color:#554f49}
-.pdf-footer{margin-top:28px;padding-top:12px;border-top:1px solid #ded5ca;font-size:10px;color:#77706a;display:flex;justify-content:space-between}
+.pdf-footer{margin-top:28px;padding-top:9px;border-top:1px solid #ded5ca;font-size:10px;color:#77706a;display:flex;justify-content:space-between}
 @media print{
  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-
- @page{size:letter;margin:0.35in}
- body{background:white}
+ @page{size:letter portrait;margin:0.28in}
+ html,body{margin:0!important;padding:0!important;background:#fff!important}
  body > .shell .brand-panel{display:none!important}
- .flow-panel{padding:0!important;background:white!important}
+ .flow-panel{padding:0!important;background:#fff!important}
  .flow-panel > .progress,.flow-panel > .card > .step{display:none!important}
- .card{max-width:none!important;padding:0!important;box-shadow:none!important}
- #pdfSheet{display:block!important;width:100%}
- .pdf-page{display:block!important;min-height:9.7in;padding:20px 28px}
+ .card{max-width:none!important;padding:0!important;margin:0!important;box-shadow:none!important;border:0!important}
+ #pdfSheet{display:block!important;width:100%!important;margin:0!important;padding:0!important}
+ .pdf-page{display:block!important;width:100%!important;max-width:none!important;height:9.95in!important;min-height:0!important;
+   padding:0.18in 0.22in!important;margin:0!important;box-sizing:border-box!important;overflow:hidden!important}
+ .pdf-page:first-child{break-after:page!important;page-break-after:always!important}
+ .pdf-page:last-child{break-after:auto!important;page-break-after:auto!important}
+ .drape-wrap{height:3.25in!important;width:3.05in!important;margin:0.08in auto 0.10in!important}
+ .pdf-palette{margin:0.08in 0 0.10in!important}
+ .pdf-footer{margin-top:0.14in!important}
 }
 @media(max-width:820px){
  .shell{grid-template-columns:1fr}
@@ -617,12 +626,37 @@ function svgColorData(color,w=80,h=80,shape='circle'){
  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`);
 }
 function drapeSVG(color,side){
- const flip=side==='right'?'transform="translate(330 0) scale(-1 1)"':'';
- const path=`<path d="M0 365 L0 230 C42 225 73 232 105 251 C128 264 149 279 171 303 C136 315 113 337 101 365 Z" fill="${color}"/>`;
- return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="330" height="365" viewBox="0 0 330 365"><g ${flip}>${path}</g></svg>`);
+ const mirror=side==='right'?'transform="translate(330 0) scale(-1 1)"':'';
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="330" height="365" viewBox="0 0 330 365">
+   <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${color}"/>
+      <stop offset=".55" stop-color="${color}"/>
+      <stop offset="1" stop-color="${color}" stop-opacity=".82"/>
+    </linearGradient>
+   </defs>
+   <g ${mirror}>
+    <path d="M0 365V250 C22 238 47 231 72 235 C103 240 127 255 160 286
+             C143 293 126 304 111 319 C96 334 87 349 82 365Z" fill="url(#g)"/>
+    <path d="M18 365 C34 319 59 279 96 250 C110 257 124 267 141 281
+             C110 300 91 328 77 365Z" fill="white" opacity=".07"/>
+   </g></svg>`;
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
 function centerDrapeSVG(color){
- return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="330" height="365" viewBox="0 0 330 365"><path d="M102 365 C112 300 133 275 165 266 C197 275 218 300 228 365 Z" fill="${color}"/></svg>`);
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="330" height="365" viewBox="0 0 330 365">
+   <defs>
+    <linearGradient id="c" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${color}"/>
+      <stop offset="1" stop-color="${color}" stop-opacity=".88"/>
+    </linearGradient>
+   </defs>
+   <path d="M92 365 C103 330 119 299 143 278 C152 270 159 266 165 263
+            C171 266 178 270 187 278 C211 299 227 330 238 365Z" fill="url(#c)"/>
+   <path d="M151 365 C155 326 159 292 165 263 C171 292 175 326 179 365Z"
+         fill="white" opacity=".08"/>
+ </svg>`;
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
 function swatchHTML(arr){return arr.map(c=>'<img alt="" src="'+svgColorData(c)+'" style="width:100%;aspect-ratio:1;display:block">').join('')}
 function beautySwatchHTML(arr){return arr.map(c=>'<img alt="" src="'+svgColorData(c)+'" style="width:34px;height:34px;display:block">').join('')}
@@ -636,9 +670,10 @@ function createColorSnapshotPDF(){
  document.getElementById('pdfSignature').textContent=c.sig;
  document.getElementById('pdfHeadshot').src=document.getElementById('photoPreview').src;
  document.getElementById('pdfPalette').innerHTML=swatchHTML(c.pal);
- document.getElementById('drape1').src=drapeSVG(c.pal[0],'left');
- document.getElementById('drape2').src=drapeSVG(c.pal[3],'right');
- document.getElementById('drape3').src=centerDrapeSVG(c.pal[7]);
+ const drapeColors=[c.pal[0],c.pal[4],c.pal[8]];
+ document.getElementById('drape1').src=drapeSVG(drapeColors[0],'left');
+ document.getElementById('drape2').src=drapeSVG(drapeColors[1],'right');
+ document.getElementById('drape3').src=centerDrapeSVG(drapeColors[2]);
  document.getElementById('pdfNeutrals').textContent=c.neu;
  document.getElementById('pdfMetals').textContent=c.met;
  document.getElementById('pdfAdjacent').textContent=r.adjacent;
