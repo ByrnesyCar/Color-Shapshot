@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot by ŌRA Salon · 5F-5.2 · Wardrobe Update</title>
+<title>Color Snapshot by ŌRA Salon · 5G · Email Delivery Pilot</title>
 <style>
 :root {
   --ora-red:#ef1016;
@@ -421,10 +421,15 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
     <div class="delivery-card">
       <div class="kicker">Take your colors with you</div>
       <h3>Your Color Snapshot is ready to keep.</h3>
-      <p id="deliveryCopy">We’ll prepare a personalized copy using the email from your guest details.</p>
+      <p id="deliveryCopy">First save the personalized PDF, upload that PDF to Acrobat, then paste the guest’s Acrobat share link below.</p>
       <div class="delivery-actions">
-        <button type="button" onclick="prepareEmail()">Prepare email</button>
-        <button type="button" class="secondary" onclick="createColorSnapshotPDF()">Create My Color Snapshot</button>
+        <button type="button" class="secondary" onclick="createColorSnapshotPDF()">1 · Create / Save PDF</button>
+      </div>
+      <label for="snapshotUrl">Acrobat share link</label>
+      <input id="snapshotUrl" type="url" inputmode="url" autocomplete="off" placeholder="https://acrobat.adobe.com/...">
+      <div class="field-note">Paste the share link for this guest’s PDF only. Open the link once yourself before sending.</div>
+      <div class="delivery-actions">
+        <button id="sendSnapshotBtn" type="button" onclick="sendColorSnapshotEmail()">2 · Email My Color Snapshot</button>
       </div>
       <label class="consent-row" style="text-transform:none;letter-spacing:0;font-weight:400">
         <input id="marketingConsent" type="checkbox">
@@ -708,15 +713,61 @@ function plainResultText(){
    'Color Snapshot is a personalized styling framework, not a scientific or medical classification.'
  ].join('\n');
 }
-function prepareEmail(){
+const EMAILJS_PUBLIC_KEY='5sh2FkO6CUtLhSnv6';
+const EMAILJS_TEMPLATE_ID='template_i5ag1gi';
+const EMAILJS_SERVICE_ID='default_service';
+
+async function sendColorSnapshotEmail(){
  if(!window.csResult){return}
- const email=guest.email||'';
- const subject=encodeURIComponent((guest.firstName||'Your')+"'s Color Snapshot · ŌRA Salon");
- const body=encodeURIComponent(plainResultText());
- const href='mailto:'+encodeURIComponent(email)+'?subject='+subject+'&body='+body;
- document.getElementById('deliveryStatus').textContent =
-   'Opening your email app with the personalized result addressed to '+email+'. You can review it before sending.';
- window.location.href=href;
+ const status=document.getElementById('deliveryStatus');
+ const btn=document.getElementById('sendSnapshotBtn');
+ const raw=(document.getElementById('snapshotUrl').value||'').trim();
+ if(!raw){
+   status.textContent='Paste this guest’s Acrobat share link before sending.';
+   document.getElementById('snapshotUrl').focus();
+   return;
+ }
+ let url;
+ try{
+   url=new URL(raw);
+   if(url.protocol!=='https:') throw new Error('https');
+ }catch(e){
+   status.textContent='That does not look like a valid secure share link. Please copy the Acrobat share link again.';
+   document.getElementById('snapshotUrl').focus();
+   return;
+ }
+ const email=(guest.email||'').trim();
+ if(!email){
+   status.textContent='This guest does not have an email address in Guest Details.';
+   return;
+ }
+ if(!window.emailjs){
+   status.textContent='Email delivery could not load. Check the internet connection and try again.';
+   return;
+ }
+ btn.disabled=true;
+ btn.textContent='Sending…';
+ status.textContent='Sending '+guest.firstName+"’s Color Snapshot…";
+ try{
+   await window.emailjs.send(
+     EMAILJS_SERVICE_ID,
+     EMAILJS_TEMPLATE_ID,
+     {
+       first_name: guest.firstName||'there',
+       guest_email: email,
+       season: window.csResult.primary,
+       snapshot_url: url.href
+     },
+     {publicKey: EMAILJS_PUBLIC_KEY}
+   );
+   status.textContent='Sent! '+guest.firstName+"’s Color Snapshot is on its way to "+email+'.';
+   btn.textContent='Sent ✓';
+ }catch(err){
+   console.error('EmailJS send failed',err);
+   status.textContent='The email did not send. Your PDF is safe—check the internet connection and try again.';
+   btn.disabled=false;
+   btn.textContent='2 · Email My Color Snapshot';
+ }
 }
 
 function svgColorData(color,w=80,h=80,shape='circle'){
@@ -829,12 +880,15 @@ function startNewGuest(){
  guest={}; window.csResult=null;
  const st=document.getElementById('photoStatus'); if(st)st.textContent='';
  const ds=document.getElementById('deliveryStatus'); if(ds)ds.textContent='';
+ const su=document.getElementById('snapshotUrl'); if(su)su.value='';
+ const sb=document.getElementById('sendSnapshotBtn'); if(sb){sb.disabled=false;sb.textContent='2 · Email My Color Snapshot';}
  const bc=document.getElementById('beautyChoiceWrap'); if(bc)bc.style.display='none';
  go('welcome',1);
 }
 
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script type="module">
 import {FaceLandmarker,FilesetResolver} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 let landmarker=null;
