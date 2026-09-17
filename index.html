@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot by ŌRA Salon · 5F-5.1c</title>
+<title>Color Snapshot by ŌRA Salon · 5F-5.2</title>
 <style>
 :root {
   --ora-red:#ef1016;
@@ -128,6 +128,11 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
 .pdf-info div{border-top:1px solid #e7dfd6;padding-top:7px}
 .pdf-info b,.beauty-cat b{display:block;text-transform:uppercase;letter-spacing:.12em;font-size:9px;color:var(--ora-red);margin-bottom:5px}
 .beauty-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.style-guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-top:14px}
+.style-guide-item{border-top:1px solid #ded5ca;padding-top:7px}
+.style-guide-item b{display:block;text-transform:uppercase;letter-spacing:.12em;font-size:9px;color:var(--ora-red);margin-bottom:4px}
+.style-guide-item span{font-size:12px;line-height:1.35;color:#554f49}
+.combo-row{display:flex;gap:16px;margin-top:7px}.combo{display:flex;gap:3px}.combo img{width:25px;height:25px}
 .beauty-cat{border-top:1px solid #ded5ca;padding-top:9px}
 .beauty-swatches{display:flex;gap:7px;margin:10px 0}
 .beauty-swatches i{width:34px;height:34px;border-radius:50%;border:1px solid rgba(0,0,0,.08)}
@@ -192,6 +197,23 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
     <input id="email" type="email" autocomplete="email" placeholder="name@example.com">
     <label for="mobile">Mobile <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
     <input id="mobile" type="tel" autocomplete="tel" placeholder="(555) 555-5555">
+    <label for="identity">How do you identify?</label>
+    <select id="identity">
+      <option value="">Choose one</option><option value="female">Female</option><option value="male">Male</option>
+      <option value="nonbinary">Non-Binary</option><option value="prefer-not">Prefer not to say</option>
+    </select>
+    <div class="field-note">This does not change your seasonal color analysis.</div>
+
+    <label for="styleGuide">Which style guide would you like?</label>
+    <select id="styleGuide" onchange="toggleBeautyChoice()">
+      <option value="">Choose one</option><option value="feminine">Feminine Style</option>
+      <option value="masculine">Masculine Style</option><option value="neutral">Gender-Neutral Style</option>
+    </select>
+    <div class="field-note">Choose the recommendations that feel most useful to you. Your guide does not have to match your gender identity.</div>
+    <div id="beautyChoiceWrap" style="display:none">
+      <label for="includeBeauty">Include beauty / makeup colors?</label>
+      <select id="includeBeauty"><option value="yes">Yes, include them</option><option value="no">No, wardrobe + accessories only</option></select>
+    </div>
     <div class="small">We’ll use your contact information to deliver your Color Snapshot result. Marketing permission, if offered later, will be a separate choice.</div>
     <button onclick="saveGuest()">Continue</button>
     <button class="secondary" onclick="go('welcome',1)">Back</button>
@@ -434,15 +456,20 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
     </div>
     <div class="pdf-page">
       <div class="pdf-brand"><img id="pdfLogo2" alt="ŌRA Salon"><div class="pdf-kicker">YOUR BEAUTY PALETTE</div></div>
-      <div class="pdf-title">Beauty, in your colors.</div>
-      <div class="pdf-sub" id="beautyIntro"></div>
-      <div class="beauty-grid">
+      <div class="pdf-title" id="guideTitle">Your style, in your colors.</div>
+      <div class="pdf-sub" id="guideIntro"></div>
+      <div id="styleGuideGrid" class="style-guide-grid"></div>
+      <div class="result-tile" style="margin-top:14px"><b>Easy color combinations</b><div id="comboRow" class="combo-row"></div></div>
+      <div id="beautySection">
+        <div class="result-tile" style="margin-top:15px"><b>Your beauty palette</b><span id="beautyIntro"></span></div>
+        <div class="beauty-grid">
         <div class="beauty-cat"><b>Eyeshadow</b><div class="beauty-swatches" id="eyeSwatches"></div><span id="eyeText"></span></div>
         <div class="beauty-cat"><b>Lipstick</b><div class="beauty-swatches" id="lipSwatches"></div><span id="lipText"></span></div>
         <div class="beauty-cat"><b>Blush</b><div class="beauty-swatches" id="blushSwatches"></div><span id="blushText"></span></div>
         <div class="beauty-cat"><b>Mascara</b><div class="beauty-swatches" id="masSwatches"></div><span id="masText"></span></div>
+        </div>
       </div>
-      <div class="result-tile" style="margin-top:30px"><b>Hair direction</b><span id="pdfHair"></span></div>
+      <div class="result-tile" style="margin-top:18px"><b>Hair direction</b><span id="pdfHair"></span></div>
       <div class="result-tile"><b>How to use this guide</b><span>Use these shades as a starting point when shopping. Look for colors with a similar temperature, depth and softness or clarity—not necessarily an exact product match.</span></div>
       <div class="result-tile"><b>A note from Color Snapshot</b><span>Your palette is a styling framework, not a rulebook. The best color is still one that makes you feel like yourself.</span></div>
       <div class="pdf-footer"><span>Original. Rooted. Authentic.</span><span>COLOR SNAPSHOT by ŌRA SALON</span></div>
@@ -488,12 +515,19 @@ function saveGuest(){
  const email=document.getElementById('email').value.trim();
  if(!name){alert('Please enter the guest’s first name.');return}
  if(!email || !document.getElementById('email').checkValidity()){alert('Please enter a valid email address.');return}
- guest={firstName:name,email,mobile:document.getElementById('mobile').value.trim(),sessionId:sessionID(name)};
+ const identity=document.getElementById('identity').value, styleGuide=document.getElementById('styleGuide').value;
+ if(!identity||!styleGuide){alert('Please choose an identity response and a style guide.');return;}
+ guest={firstName:name,email,mobile:document.getElementById('mobile').value.trim(),identity,styleGuide,
+ includeBeauty:(styleGuide==='feminine')?true:(document.getElementById('includeBeauty').value==='yes'),sessionId:sessionID(name)};
  document.getElementById('guestName').textContent=name;
  document.getElementById('sessionId').textContent=guest.sessionId;
  go('ready',2);
 }
 
+function toggleBeautyChoice(){
+ const v=document.getElementById('styleGuide').value;
+ document.getElementById('beautyChoiceWrap').style.display=(v==='masculine'||v==='neutral')?'block':'none';
+}
 function previewPhoto(e){
  const f=e.target.files && e.target.files[0];
  if(!f)return;
@@ -603,6 +637,25 @@ const beautyContent={
 "Bright Winter":{eye:["#4b5fa5","#347f85","#684fa0","#55545c"],eyeText:"Cobalt · bright teal · violet · cool charcoal",lip:["#df347f","#c72f54","#d22f70"],lipText:"Hot pink · clear berry · blue-red",blush:["#d65380","#c94671"],blushText:"Bright cool pink · clear berry",mas:["#202126","#0b0c0e"],masText:"Black · blue-black"}
 };
 
+
+const guideContent={
+ feminine:{label:"Feminine Style",sections:[
+ ["Clothing colors","Use your seasonal colors for tops, dresses, jackets and other pieces worn near the face."],
+ ["Accessories","Use your best metals and seasonal accent colors for jewelry, scarves, bags and shoes."]]},
+ masculine:{label:"Masculine Style",sections:[
+ ["Shirts + knits","Use lighter and mid-depth palette colors for shirts, polos, sweaters and tees."],
+ ["Jackets + suiting","Build sport coats, suits, trousers and outerwear around your best neutrals."],
+ ["Ties + pocket squares","Use richer seasonal accents for ties, pocket squares and statement details."],
+ ["Leather goods","Coordinate shoes, belts, bags and watch straps with the warmth and depth of your neutrals."],
+ ["Watches + eyewear","Repeat your recommended metals and palette temperature in frames and watch finishes."]]},
+ neutral:{label:"Gender-Neutral Style",sections:[
+ ["Core colors","Use wearable mid-depth shades from your palette for everyday tops, bottoms and layers."],
+ ["Best neutrals","Build trousers, denim, jackets, knits and outerwear around your recommended neutrals."],
+ ["Statement colors","Bring seasonal accents near the face or into one focal piece."],
+ ["Shoes + accessories","Repeat your palette temperature and depth in shoes, bags, belts, eyewear and accessories."]]}
+};
+function bestCombos(c){return [[c.pal[0],c.pal[5]],[c.pal[2],c.pal[8]],[c.pal[4],c.pal[10]]]}
+
 function plainResultText(){
  const r=window.csResult, c=seasonContent[r.primary];
  return [
@@ -701,6 +754,13 @@ function createColorSnapshotPDF(){
  document.getElementById('pdfMetals').textContent=c.met;
  document.getElementById('pdfAdjacent').textContent=r.adjacent;
  document.getElementById('pdfConfidence').textContent=r.confidence+' match';
+  const g=guideContent[guest.styleGuide]||guideContent.neutral;
+ document.getElementById('guideTitle').textContent=g.label+' · '+r.primary;
+ document.getElementById('guideIntro').textContent='A personalized '+g.label.toLowerCase()+' built around your '+r.primary+' palette.';
+ document.getElementById('styleGuideGrid').innerHTML=g.sections.map(x=>'<div class="style-guide-item"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>').join('');
+ document.getElementById('comboRow').innerHTML=bestCombos(c).map(pair=>'<div class="combo">'+pair.map(col=>'<img alt="" src="'+svgColorData(col)+'">').join('')+'</div>').join('');
+ const showBeauty=guest.styleGuide==='feminine'||guest.includeBeauty;
+ document.getElementById('beautySection').style.display=showBeauty?'block':'none';
  document.getElementById('beautyIntro').textContent='A '+r.primary+' makeup direction designed to harmonize with your overall coloring.';
  document.getElementById('eyeSwatches').innerHTML=beautySwatchHTML(b.eye);document.getElementById('eyeText').textContent=b.eyeText;
  document.getElementById('lipSwatches').innerHTML=beautySwatchHTML(b.lip);document.getElementById('lipText').textContent=b.lipText;
@@ -741,6 +801,7 @@ function startNewGuest(){
  guest={}; window.csResult=null;
  const st=document.getElementById('photoStatus'); if(st)st.textContent='';
  const ds=document.getElementById('deliveryStatus'); if(ds)ds.textContent='';
+ const bc=document.getElementById('beautyChoiceWrap'); if(bc)bc.style.display='none';
  go('welcome',1);
 }
 
