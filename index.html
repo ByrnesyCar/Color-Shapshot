@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot by ŌRA Salon · 5F-5.2</title>
+<title>Color Snapshot by ŌRA Salon · 5F-5.2 · Wardrobe Update</title>
 <style>
 :root {
   --ora-red:#ef1016;
@@ -133,6 +133,11 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
 .style-guide-item b{display:block;text-transform:uppercase;letter-spacing:.12em;font-size:9px;color:var(--ora-red);margin-bottom:4px}
 .style-guide-item span{font-size:12px;line-height:1.35;color:#554f49}
 .combo-row{display:flex;gap:16px;margin-top:7px}.combo{display:flex;gap:3px}.combo img{width:25px;height:25px}
+.wardrobe-pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:12px}
+.wardrobe-block{border-top:1px solid #ded5ca;padding-top:7px}
+.wardrobe-block b{display:block;text-transform:uppercase;letter-spacing:.1em;font-size:8px;color:var(--ora-red);margin-bottom:6px}
+.mini-swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.mini-swatch{text-align:center;font-size:7.5px;line-height:1.1;color:#554f49}.mini-swatch img{display:block;width:100%;height:22px;margin-bottom:3px}
 .beauty-cat{border-top:1px solid #ded5ca;padding-top:9px}
 .beauty-swatches{display:flex;gap:7px;margin:10px 0}
 .beauty-swatches i{width:34px;height:34px;border-radius:50%;border:1px solid rgba(0,0,0,.08)}
@@ -451,7 +456,10 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
         <div><b>Metals</b><span id="pdfMetals"></span></div>
         <div><b>Closest neighboring palette</b><span id="pdfAdjacent"></span></div>
         <div><b>Match</b><span id="pdfConfidence"></span></div>
-      </div>
+      </div><div class="wardrobe-pair">
+<div class="wardrobe-block"><b>Best Neutrals · Build your wardrobe around these</b><div id="bestNeutralSwatches" class="mini-swatches"></div></div>
+<div class="wardrobe-block"><b>Power Colors · Reach for these when you want impact</b><div id="powerColorSwatches" class="mini-swatches"></div></div>
+</div>
       <div class="pdf-footer"><span>Original. Rooted. Authentic.</span><span>COLOR SNAPSHOT by ŌRA SALON</span></div>
     </div>
     <div class="pdf-page">
@@ -638,6 +646,22 @@ const beautyContent={
 };
 
 
+
+const wardrobeColors={
+"Light Spring":{neutrals:[["Ivory","#F4E8CF"],["Light Camel","#C9A978"],["Warm Navy","#41566A"],["Oatmeal","#D9C9A7"]],power:[["Coral","#EF7C70"],["Warm Aqua","#65B9B2"],["Peach","#F4A47C"],["Fresh Green","#83A96B"]]},
+"Warm Spring":{neutrals:[["Cream","#F3E3C2"],["Camel","#B98A57"],["Warm Navy","#344F60"],["Cognac","#9A633E"]],power:[["Tomato Red","#D9513B"],["Coral","#E9785D"],["Turquoise","#3BAFA7"],["Leaf Green","#6E9B55"]]},
+"Bright Spring":{neutrals:[["Ivory","#F5E9D2"],["Warm Navy","#263F58"],["Warm Charcoal","#57534B"],["Camel","#B78A59"]],power:[["Vivid Coral","#F05E4D"],["Clear Teal","#159E9B"],["Warm Pink","#E94F7B"],["Emerald","#2B9A68"]]},
+"Light Summer":{neutrals:[["Soft White","#F1EFE9"],["Dove Gray","#B8BBC0"],["Light Navy","#52677D"],["Cool Taupe","#AAA09B"]],power:[["Rose Pink","#C9798C"],["Periwinkle","#7E8FBE"],["Watermelon","#D66F7D"],["Soft Teal","#5F9999"]]},
+"Cool Summer":{neutrals:[["Soft Navy","#394D66"],["Charcoal","#555A63"],["Mushroom","#9B918E"],["Cool Taupe","#A69A96"]],power:[["Raspberry","#A93E64"],["Deep Teal","#33777A"],["Blue Rose","#B45D7B"],["Soft Plum","#75566F"]]},
+"Soft Summer":{neutrals:[["Mushroom","#8F8580"],["Soft Navy","#48586C"],["Cool Gray","#7E8388"],["Taupe","#91857F"]],power:[["Dusty Rose","#A96676"],["Muted Berry","#86526A"],["Soft Teal","#507B7A"],["Smoky Plum","#756272"]]},
+"Soft Autumn":{neutrals:[["Warm Taupe","#8D7B6A"],["Camel","#AE895E"],["Cocoa","#705448"],["Soft Olive","#74735A"]],power:[["Terracotta","#A95E45"],["Muted Teal","#4F7771"],["Warm Rose","#A66C68"],["Moss","#6D7750"]]},
+"Warm Autumn":{neutrals:[["Chocolate","#5B4035"],["Camel","#B08350"],["Warm Navy","#344951"],["Olive","#68673E"]],power:[["Rust","#A54D2D"],["Deep Teal","#286B68"],["Paprika","#B64C37"],["Warm Burgundy","#743F43"]]},
+"Deep Autumn":{neutrals:[["Espresso","#3D302A"],["Dark Olive","#4D5035"],["Warm Charcoal","#4C4942"],["Deep Camel","#8C6847"]],power:[["Oxblood","#6D3533"],["Forest Teal","#285A55"],["Burnt Orange","#A34E29"],["Deep Mustard","#A27A32"]]},
+"Deep Winter":{neutrals:[["Black","#171719"],["Charcoal","#41434A"],["Crisp White","#F6F6F3"],["Deep Navy","#1E304A"]],power:[["Wine","#702A46"],["Emerald","#176B58"],["Royal Blue","#3154A4"],["Deep Berry","#812D5B"]]},
+"Cool Winter":{neutrals:[["Black","#151518"],["Pure White","#FAFAF8"],["Charcoal","#41454E"],["Cool Navy","#202E50"]],power:[["Fuchsia","#C02D75"],["Sapphire","#2753A3"],["Blue Red","#C73545"],["Cool Emerald","#13705F"]]},
+"Bright Winter":{neutrals:[["Black","#121216"],["Optic White","#FCFCFA"],["Navy","#172A4C"],["Graphite","#444650"]],power:[["Hot Pink","#D92F82"],["Cobalt","#2458C2"],["Clear Berry","#A91F62"],["Emerald","#008064"]]}
+};
+
 const guideContent={
  feminine:{label:"Feminine Style",sections:[
  ["Clothing colors","Use your seasonal colors for tops, dresses, jackets and other pieces worn near the face."],
@@ -746,7 +770,8 @@ function createColorSnapshotPDF(){
  document.getElementById('pdfSignature').textContent=c.sig;
  document.getElementById('pdfHeadshot').src=document.getElementById('photoPreview').src;
  document.getElementById('pdfPalette').innerHTML=swatchHTML(c.pal);
- const drapeColors=[c.pal[0],c.pal[4],c.pal[8]];
+ const wc=wardrobeColors[r.primary];
+ const drapeColors=[c.pal[4],wc.neutrals[0][1],c.pal[9]];
  document.getElementById('drape1').src=drapeSVG(drapeColors[0],'left');
  document.getElementById('drape2').src=drapeSVG(drapeColors[1],'right');
  document.getElementById('drape3').src=centerDrapeSVG(drapeColors[2]);
@@ -754,6 +779,9 @@ function createColorSnapshotPDF(){
  document.getElementById('pdfMetals').textContent=c.met;
  document.getElementById('pdfAdjacent').textContent=r.adjacent;
  document.getElementById('pdfConfidence').textContent=r.confidence+' match';
+ const miniHTML=arr=>arr.map(x=>'<div class="mini-swatch"><img alt="" src="'+svgColorData(x[1])+'"><span>'+x[0]+'</span></div>').join('');
+ document.getElementById('bestNeutralSwatches').innerHTML=miniHTML(wc.neutrals);
+ document.getElementById('powerColorSwatches').innerHTML=miniHTML(wc.power);
   const g=guideContent[guest.styleGuide]||guideContent.neutral;
  document.getElementById('guideTitle').textContent=g.label+' · '+r.primary;
  document.getElementById('guideIntro').textContent='A personalized '+g.label.toLowerCase()+' built around your '+r.primary+' palette.';
