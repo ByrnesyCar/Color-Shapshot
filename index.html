@@ -49,7 +49,7 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
 .photo-box{border:1px dashed #bdb4a8;padding:18px;margin:16px 0;text-align:center;background:#fff}
 .photo-box input{border:0;font-size:14px}
 .photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
-.photo-action{display:flex;align-items:center;justify-content:center;background:var(--ora-red);color:white!important;padding:13px 10px;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;font-size:11px;font-weight:700}
+.photo-action{width:100%;margin:0;border:0;display:flex;align-items:center;justify-content:center;background:var(--ora-red);color:white!important;padding:13px 10px;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;font-size:11px;font-weight:700}
 .secondary-photo{background:transparent;color:var(--ink)!important;border:1px solid var(--ink)}
 .native-file{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;overflow:hidden!important;pointer-events:none}
 @media(max-width:520px){.photo-actions{grid-template-columns:1fr}}
@@ -241,12 +241,20 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
     <label for="photoInput">Guest photo</label>
     <div class="photo-box">
       <div class="photo-actions">
-        <label class="photo-action" for="cameraInput">Take a photo</label>
+        <button type="button" class="photo-action" onclick="openSnapshotCamera()">Take a photo</button>
         <label class="photo-action secondary-photo" for="photoInput">Choose existing photo</label>
       </div>
       <input id="cameraInput" class="native-file" type="file" accept="image/*" capture="user" onchange="previewPhoto(event)">
       <input id="photoInput" class="native-file" type="file" accept="image/*" onchange="previewPhoto(event)">
-      <div class="field-note">On Android/Chrome, “Take a photo” opens the camera when supported. “Choose existing photo” opens the phone’s image/file picker.</div>
+      <div class="field-note">Take a photo uses your laptop or phone camera in this browser. Choose existing photo remains available.</div>
+      <div id="cameraPanel" style="display:none;margin-top:12px">
+        <video id="cameraVideo" autoplay playsinline muted style="width:100%;max-height:350px;background:#222;object-fit:contain"></video>
+        <div class="photo-actions">
+          <button type="button" class="photo-action" onclick="captureSnapshotPhoto()">Capture photo</button>
+          <button type="button" class="photo-action secondary-photo" onclick="closeSnapshotCamera()">Cancel</button>
+        </div>
+        <div class="field-note">Center the face, use even neutral light, and avoid beauty filters.</div>
+      </div>
       <img id="photoPreview" alt="Guest photo preview">
       <div id="photoStatus" class="inline-status"></div>
     </div>
@@ -541,7 +549,58 @@ function toggleBeautyChoice(){
  const v=document.getElementById('styleGuide').value;
  document.getElementById('beautyChoiceWrap').style.display=(v==='masculine'||v==='neutral')?'block':'none';
 }
+let snapshotStream=null;
+async function openSnapshotCamera(){
+ const status=document.getElementById('photoStatus');
+ closeSnapshotCamera();
+ if(!navigator.mediaDevices?.getUserMedia){
+   status.textContent='Camera access is unavailable. Open the site using HTTPS in a supported browser, or choose an existing photo.';
+   return;
+ }
+ try{
+   snapshotStream=await navigator.mediaDevices.getUserMedia({
+     audio:false,video:{facingMode:'user',width:{ideal:1920},height:{ideal:1080}}
+   });
+   const video=document.getElementById('cameraVideo');
+   video.srcObject=snapshotStream;
+   document.getElementById('cameraPanel').style.display='block';
+   await video.play();
+   status.textContent='Camera ready. Position the guest and select Capture photo.';
+ }catch(err){
+   closeSnapshotCamera();
+   status.textContent=err.name==='NotAllowedError'
+     ? 'Camera permission was denied. Allow camera access in your browser settings and try again.'
+     : 'Unable to start camera: '+err.message+'. You can still upload a photo.';
+ }
+}
+function closeSnapshotCamera(){
+ if(snapshotStream){snapshotStream.getTracks().forEach(track=>track.stop());snapshotStream=null;}
+ const video=document.getElementById('cameraVideo');
+ if(video){video.pause();video.srcObject=null;}
+ const panel=document.getElementById('cameraPanel');
+ if(panel)panel.style.display='none';
+}
+function captureSnapshotPhoto(){
+ const video=document.getElementById('cameraVideo');
+ if(!snapshotStream||!video.videoWidth){
+   document.getElementById('photoStatus').textContent='Camera is not ready yet. Please try again.';
+   return;
+ }
+ const canvas=document.createElement('canvas');
+ canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+ canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
+ const img=document.getElementById('photoPreview');
+ if(img.src.startsWith('blob:'))URL.revokeObjectURL(img.src);
+ img.src=canvas.toDataURL('image/jpeg',0.94);
+ img.style.display='block';
+ guest.photoOriginalName='webcam-capture.jpg';
+ guest.photoTempName=guest.sessionId?guest.sessionId+'.jpg':'Color-Snapshot-session.jpg';
+ guest.photoReady=true;
+ closeSnapshotCamera();
+ document.getElementById('photoStatus').textContent='Photo captured. You can retake it or continue.';
+}
 function previewPhoto(e){
+ closeSnapshotCamera();
  const f=e.target.files && e.target.files[0];
  if(!f)return;
  const img=document.getElementById('photoPreview');
@@ -876,6 +935,7 @@ function finishSession(){
  go('done',5);
 }
 function startNewGuest(){
+ closeSnapshotCamera();
  const img=document.getElementById('photoPreview');
  if(img && img.src && img.src.startsWith('blob:')) URL.revokeObjectURL(img.src);
  if(img){img.removeAttribute('src');img.style.display='none'}
