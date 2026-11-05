@@ -213,6 +213,22 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
   #pdfSheet .pdf-footer { margin-top:8px!important; padding-top:5px!important; }
 }
 
+
+/* Event-night print isolation: prevent the hidden application grid and progress
+   strip from creating an empty first printed page. */
+@media print {
+  @page { size: letter portrait; margin: 0.25in; }
+  html, body { width: auto!important; height:auto!important; margin:0!important; padding:0!important; }
+  body > main.shell, main.shell { display:block!important; width:100%!important; min-height:0!important; margin:0!important; padding:0!important; }
+  main.shell > .brand-panel { display:none!important; }
+  main.shell > .flow-panel { display:block!important; width:100%!important; min-height:0!important; margin:0!important; padding:0!important; }
+  .flow-panel > .card { display:block!important; width:100%!important; max-width:none!important; min-height:0!important; margin:0!important; padding:0!important; }
+  .flow-panel .progress, .flow-panel .step { display:none!important; }
+  #pdfSheet { display:block!important; width:100%!important; margin:0!important; padding:0!important; position:static!important; }
+  #pdfSheet > .pdf-page { display:block!important; width:7.95in!important; max-width:7.95in!important; height:10.25in!important; min-height:0!important; margin:0 auto!important; padding:0.12in 0.18in!important; overflow:hidden!important; box-sizing:border-box!important; break-inside:avoid!important; page-break-inside:avoid!important; }
+  #pdfSheet > .pdf-page:first-child { break-before:auto!important; page-break-before:auto!important; break-after:page!important; page-break-after:always!important; }
+  #pdfSheet > .pdf-page + .pdf-page { break-before:auto!important; page-break-before:auto!important; break-after:auto!important; page-break-after:auto!important; }
+}
 </style>
 </head>
 <body>
@@ -477,19 +493,14 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
     <div class="delivery-card">
       <div class="kicker">Take your colors with you</div>
       <h3>Your Color Snapshot is ready to keep.</h3>
-      <p id="deliveryCopy">Send your personalized color recommendations directly by email. You can also save a PDF if you wish.</p>
-      <div class="delivery-actions">
-        <button type="button" class="secondary" onclick="createColorSnapshotPDF()">Optional · Save PDF</button>
-      </div>
-       <div class="field-note">Email delivery includes your season, palette colors, best neutrals, power colors, metals, and personalized styling guidance. No Acrobat upload required.</div>
-      <div class="delivery-actions">
-        <button id="sendSnapshotBtn" type="button" onclick="this.textContent='Checking email…'; Promise.resolve().then(()=>sendColorSnapshotEmail()).catch(e=>{document.getElementById('deliveryStatus').textContent='Email setup error: '+(e.message||e);this.textContent='Email My Color Snapshot';console.error(e);})">Email My Color Snapshot</button>
-      </div>
+      <p>Save the personalized two-page color guide as a PDF, then attach it to an email from snapshotcolor@gmail.com.</p>
+      <button type="button" onclick="createColorSnapshotPDF()">Save Color Snapshot PDF</button>
+      <div class="field-note">In the print window, choose Save as PDF, Letter paper, and turn off browser headers and footers.</div>
       <label class="consent-row" style="text-transform:none;letter-spacing:0;font-weight:400">
         <input id="marketingConsent" type="checkbox">
         <span>Yes, I’d also like occasional news, offers and inspiration from the hosting salon. This is optional and separate from receiving my Color Snapshot.</span>
       </label>
-      <div id="deliveryStatus" class="small" role="status" aria-live="polite" style="font-weight:700;color:#0B4354;white-space:pre-wrap"></div>
+      <div id="deliveryStatus" class="small" role="status" aria-live="polite"></div>
     </div>
     <button class="secondary" onclick="finishSession()">Finish this guest</button>
     <button class="secondary" onclick="go('review',5)">Back to host review</button>
@@ -1024,14 +1035,14 @@ function startNewGuest(){
  const st=document.getElementById('photoStatus'); if(st)st.textContent='';
  const ds=document.getElementById('deliveryStatus'); if(ds)ds.textContent='';
 
- const sb=document.getElementById('sendSnapshotBtn'); if(sb){sb.disabled=false;sb.textContent='Email My Color Snapshot';}
+ 
  const bc=document.getElementById('beautyChoiceWrap'); if(bc)bc.style.display='none';
  go('welcome',1);
 }
 
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 <script type="module">
 import {FaceLandmarker,FilesetResolver} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 let landmarker=null;
