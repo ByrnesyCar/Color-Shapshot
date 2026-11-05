@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot · 5G.3 · Branded Results Email</title>
+<title>Color Snapshot · 5G.3.2 · Email Connection Diagnostics</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
@@ -798,7 +798,7 @@ async function sendColorSnapshotEmail(){
  const makeupText=showBeauty?['Eyes: '+b.eyeText,'Lips: '+b.lipText,'Blush: '+b.blushText,'Mascara: '+b.masText].join('\n'):'Not requested';
  btn.disabled=true;btn.textContent='Sending…';status.textContent='Sending '+guest.firstName+'’s results…';
  try{
-  await window.emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{
+  await window.emailjs.send(EMAILJS_SERVICE_ID.trim(),EMAILJS_TEMPLATE_ID.trim(),{
    first_name:guest.firstName||'there', guest_email:email, to_email:email,
    season:r.primary, season_signature:c.sig, confidence:r.confidence,
    best_neutrals:wc.neutrals.map(x=>x[0]).join(' · '),
@@ -814,7 +814,9 @@ async function sendColorSnapshotEmail(){
   btn.textContent='Email submitted ✓';
  }catch(err){
   console.error('EmailJS send failed',err);
-  status.textContent='Email failed: '+(err?.text||err?.message||'Unknown error')+'. Check the EmailJS dashboard configuration.';
+  const details='EmailJS response: '+(err?.status||'unknown status')+' — '+(err?.text||err?.message||'Unknown error')+' | Service: '+EMAILJS_SERVICE_ID+' | Template: '+EMAILJS_TEMPLATE_ID+' | Public key ending: '+EMAILJS_PUBLIC_KEY.slice(-4);
+   status.textContent=details+' | Please copy this message and send it to support. No guest details are included.';
+   status.style.whiteSpace='pre-wrap';
   btn.disabled=false;btn.textContent='Email My Color Snapshot';
  }
 }
