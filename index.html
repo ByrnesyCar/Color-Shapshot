@@ -440,13 +440,13 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
       </div>
        <div class="field-note">Email delivery includes your season, palette colors, best neutrals, power colors, metals, and personalized styling guidance. No Acrobat upload required.</div>
       <div class="delivery-actions">
-        <button id="sendSnapshotBtn" type="button" onclick="sendColorSnapshotEmail()">Email My Color Snapshot</button>
+        <button id="sendSnapshotBtn" type="button" onclick="this.textContent='Checking email…'; Promise.resolve().then(()=>sendColorSnapshotEmail()).catch(e=>{document.getElementById('deliveryStatus').textContent='Email setup error: '+(e.message||e);this.textContent='Email My Color Snapshot';console.error(e);})">Email My Color Snapshot</button>
       </div>
       <label class="consent-row" style="text-transform:none;letter-spacing:0;font-weight:400">
         <input id="marketingConsent" type="checkbox">
         <span>Yes, I’d also like occasional news, offers and inspiration from the hosting salon. This is optional and separate from receiving my Color Snapshot.</span>
       </label>
-      <div id="deliveryStatus" class="small"></div>
+      <div id="deliveryStatus" class="small" role="status" aria-live="polite" style="font-weight:700;color:#0B4354;white-space:pre-wrap"></div>
     </div>
     <button class="secondary" onclick="finishSession()">Finish this guest</button>
     <button class="secondary" onclick="go('review',5)">Back to host review</button>
@@ -783,13 +783,15 @@ function emailColorSwatches(items){
  return items.map(item=>'<span style="display:inline-block;vertical-align:top;width:116px;margin:0 6px 12px 0;font:12px Arial,sans-serif;color:#0B4354"><span style="display:block;background:'+item[1]+';height:42px;border-radius:6px;border:1px solid #dedede"></span><span style="display:block;padding-top:5px">'+item[0]+'</span></span>').join('');
 }
 async function sendColorSnapshotEmail(){
- if(!window.csResult)return;
  const status=document.getElementById('deliveryStatus');
  const btn=document.getElementById('sendSnapshotBtn');
+ if(!window.csResult){status.textContent='No completed analysis is available. Please run the analysis and reveal the result again.';return;}
  const email=(guest.email||'').trim();
  if(!email){status.textContent='Guest email is missing. Return to Guest Details.';return;}
  if(!window.emailjs){status.textContent='Email service could not load. Check your connection.';return;}
- const r=window.csResult, c=seasonContent[r.primary], wc=wardrobeColors[r.primary];
+ const r=window.csResult;
+ if(!seasonContent[r.primary] || !wardrobeColors[r.primary] || !beautyContent[r.primary]){status.textContent='Result data is incomplete. Please restart this test consultation.';return;}
+ const c=seasonContent[r.primary], wc=wardrobeColors[r.primary];
  const b=beautyContent[r.primary], g=guideContent[guest.styleGuide]||guideContent.neutral;
  const showBeauty=guest.styleGuide==='feminine'||guest.includeBeauty;
  const styleText=g.sections.map(x=>x[0]+': '+x[1]).join('\n');
