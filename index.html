@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot · Brevo Email Delivery</title>
+<title>Color Snapshot · Two-Page PDF Edition</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
@@ -172,6 +172,47 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
  h1{font-size:64px}
  .logo{width:180px}
 }
+
+/* Two-page letter-size PDF layout — event-night print refinement. */
+@media print {
+  @page { size: letter portrait; margin: 0.25in; }
+  #pdfSheet { display:block!important; }
+  #pdfSheet .pdf-page {
+    width: 8in!important; max-width:8in!important;
+    height: 10.35in!important; min-height:0!important;
+    padding:0.12in 0.20in!important;
+    margin:0 auto!important; overflow:hidden!important;
+    break-inside:avoid!important; page-break-inside:avoid!important;
+    box-sizing:border-box!important;
+  }
+  #pdfSheet .pdf-page:first-child { break-after:page!important; page-break-after:always!important; }
+  #pdfSheet .pdf-page + .pdf-page { break-before:page!important; page-break-before:always!important; }
+  #pdfSheet .pdf-brand { padding-bottom:8px!important; margin-bottom:8px!important; }
+  #pdfSheet .pdf-brand img { width:96px!important; }
+  #pdfSheet .pdf-title { font-size:31px!important; line-height:1.08!important; margin:3px 0 5px!important; }
+  #pdfSheet .pdf-sub { font-size:14px!important; line-height:1.3!important; margin-bottom:8px!important; }
+  #pdfSheet .drape-wrap { width:2.65in!important; height:2.85in!important; margin:0.04in auto 0.07in!important; }
+  #pdfSheet .pdf-palette { margin:5px 0 7px!important; gap:4px!important; }
+  #pdfSheet .pdf-info { gap:5px 18px!important; }
+  #pdfSheet .pdf-info div { padding-top:4px!important; }
+  #pdfSheet .wardrobe-pair { gap:12px!important; margin-top:7px!important; }
+  #pdfSheet .mini-swatch img { height:17px!important; margin-bottom:2px!important; }
+  #pdfSheet .mini-swatch { font-size:7px!important; }
+  #pdfSheet .style-guide-grid { gap:6px 16px!important; margin-top:7px!important; }
+  #pdfSheet .style-guide-item { padding-top:4px!important; }
+  #pdfSheet .style-guide-item span { font-size:10px!important; line-height:1.2!important; }
+  #pdfSheet .result-tile { padding:7px 0!important; margin-top:6px!important; }
+  #pdfSheet .result-tile span { font-size:12px!important; line-height:1.25!important; }
+  #pdfSheet .beauty-grid { gap:8px!important; margin-top:7px!important; }
+  #pdfSheet .beauty-cat { padding-top:5px!important; }
+  #pdfSheet .beauty-cat span { font-size:10px!important; line-height:1.2!important; }
+  #pdfSheet .beauty-swatches { margin:5px 0!important; gap:4px!important; }
+  #pdfSheet .beauty-swatches i, #pdfSheet .beauty-swatches img { width:23px!important; height:23px!important; }
+  #pdfSheet .combo-row { margin-top:4px!important; }
+  #pdfSheet .combo img { width:19px!important; height:19px!important; }
+  #pdfSheet .pdf-footer { margin-top:8px!important; padding-top:5px!important; }
+}
+
 </style>
 </head>
 <body>
@@ -196,7 +237,9 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
     <p>We’ll combine a photo with a few guided questions about your natural coloring and the colors you respond to best. Your personalized result takes about <strong>2–3 minutes</strong>.</p>
     <button onclick="go('details',2)">Start my snapshot</button>
     <div class="small">Color Snapshot consultation at ŌRA Salon. Your photo is used for this analysis session and is not intentionally saved to the Color Snapshot guest record.</div>
-  </section>
+  <button class="secondary" onclick="downloadClientList()">Download Client List (CSV)</button>
+<div class="small">For event staff only. Export the list on this same device and browser.</div>
+</section>
 
   <section class="step" id="details">
     <div class="kicker">Guest details · 1 of 4</div>
@@ -440,7 +483,7 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
       </div>
        <div class="field-note">Email delivery includes your season, palette colors, best neutrals, power colors, metals, and personalized styling guidance. No Acrobat upload required.</div>
       <div class="delivery-actions">
-        <button id="sendSnapshotBtn" type="button" onclick="sendColorSnapshotEmail()">Email My Color Snapshot</button>
+        <button id="sendSnapshotBtn" type="button" onclick="this.textContent='Checking email…'; Promise.resolve().then(()=>sendColorSnapshotEmail()).catch(e=>{document.getElementById('deliveryStatus').textContent='Email setup error: '+(e.message||e);this.textContent='Email My Color Snapshot';console.error(e);})">Email My Color Snapshot</button>
       </div>
       <label class="consent-row" style="text-transform:none;letter-spacing:0;font-weight:400">
         <input id="marketingConsent" type="checkbox">
@@ -507,6 +550,8 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
       <h2>That’s your color story.</h2>
       <p id="doneName">Your result is ready to take with you.</p>
       <button onclick="startNewGuest()">Start a new guest</button>
+      <button class="secondary" onclick="downloadClientList()">Download Client List (CSV)</button>
+      <div class="small">Guest list is saved only in this browser on this device. Export it after the event and keep the file private.</div>
       <div class="small">The previous guest’s photo preview and session data will be cleared from this browser page before the next session begins.</div>
     </div>
   </section>
@@ -775,41 +820,48 @@ function plainResultText(){
    'Color Snapshot is a personalized styling framework, not a scientific or medical classification.'
  ].join('\n');
 }
+const EMAILJS_PUBLIC_KEY='5sh2FkO6CUtLhSnv6';
+const EMAILJS_TEMPLATE_ID='template_x6g35r';
+const EMAILJS_SERVICE_ID='service_l9fjt9p';
+
+function emailColorSwatches(items){
+ return items.map(item=>'<span style="display:inline-block;vertical-align:top;width:116px;margin:0 6px 12px 0;font:12px Arial,sans-serif;color:#0B4354"><span style="display:block;background:'+item[1]+';height:42px;border-radius:6px;border:1px solid #dedede"></span><span style="display:block;padding-top:5px">'+item[0]+'</span></span>').join('');
+}
 async function sendColorSnapshotEmail(){
  const status=document.getElementById('deliveryStatus');
  const btn=document.getElementById('sendSnapshotBtn');
- if(!window.csResult){status.textContent='Complete the color analysis first.';return;}
+ if(!window.csResult){status.textContent='No completed analysis is available. Please run the analysis and reveal the result again.';return;}
  const email=(guest.email||'').trim();
  if(!email){status.textContent='Guest email is missing. Return to Guest Details.';return;}
+ if(!window.emailjs){status.textContent='Email service could not load. Check your connection.';return;}
  const r=window.csResult;
- if(!seasonContent[r.primary]||!wardrobeColors[r.primary]||!beautyContent[r.primary]){status.textContent='Result data is incomplete. Please restart this consultation.';return;}
- const c=seasonContent[r.primary],wc=wardrobeColors[r.primary],b=beautyContent[r.primary];
- const g=guideContent[guest.styleGuide]||guideContent.neutral;
+ if(!seasonContent[r.primary] || !wardrobeColors[r.primary] || !beautyContent[r.primary]){status.textContent='Result data is incomplete. Please restart this test consultation.';return;}
+ const c=seasonContent[r.primary], wc=wardrobeColors[r.primary];
+ const b=beautyContent[r.primary], g=guideContent[guest.styleGuide]||guideContent.neutral;
  const showBeauty=guest.styleGuide==='feminine'||guest.includeBeauty;
  const styleText=g.sections.map(x=>x[0]+': '+x[1]).join('\n');
  const makeupText=showBeauty?['Eyes: '+b.eyeText,'Lips: '+b.lipText,'Blush: '+b.blushText,'Mascara: '+b.masText].join('\n'):'Not requested';
- const payload={
-  first_name:guest.firstName||'there',to_email:email,
-  season:r.primary,season_signature:c.sig,confidence:r.confidence,
-  neutrals:wc.neutrals.map(x=>({name:x[0],hex:x[1]})),
-  power_colors:wc.power.map(x=>({name:x[0],hex:x[1]})),
-  metals:c.met,hair_direction:c.hair,style_guide:g.label,
-  style_recommendations:styleText,makeup_recommendations:makeupText,
-  neighboring_season:r.adjacent,
-  color_snapshot_text:plainResultText()
- };
- btn.disabled=true;btn.textContent='Sending…';status.textContent='Sending personalized results…';
+ btn.disabled=true;btn.textContent='Sending…';status.textContent='Sending '+guest.firstName+'’s results…';
  try{
-  const response=await fetch('/.netlify/functions/send-color-snapshot',{
-   method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
-  });
-  const result=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(result.error||'Email delivery request failed ('+response.status+').');
-  status.textContent='Brevo accepted the email for '+email+'. Please check the guest inbox (and spam folder).';
+  await window.emailjs.send(EMAILJS_SERVICE_ID.trim(),EMAILJS_TEMPLATE_ID.trim(),{
+   first_name:guest.firstName||'there', guest_email:email, to_email:email,
+   season:r.primary, season_signature:c.sig, confidence:r.confidence,
+   best_neutrals:wc.neutrals.map(x=>x[0]).join(' · '),
+   power_colors:wc.power.map(x=>x[0]).join(' · '),
+   neutral_swatches_html:emailColorSwatches(wc.neutrals),
+   power_swatches_html:emailColorSwatches(wc.power),
+   metals:c.met, hair_direction:c.hair, style_guide:g.label,
+   style_recommendations:styleText, makeup_recommendations:makeupText,
+   neighboring_season:r.adjacent,
+   color_snapshot_text:plainResultText()+'\n\nPOWER COLORS\n'+wc.power.map(x=>x[0]).join(', ')+'\n\nSTYLE RECOMMENDATIONS\n'+styleText+'\n\nBEAUTY\n'+makeupText
+  },{publicKey:EMAILJS_PUBLIC_KEY});
+  status.textContent='Email service accepted the message for '+email+'. Check the guest inbox to confirm arrival.';
   btn.textContent='Email submitted ✓';
  }catch(err){
-  console.error('Brevo email request failed',err);
-  status.textContent='Email could not be sent: '+(err.message||'Unknown error')+'. You can still save the PDF.';
+  console.error('EmailJS send failed',err);
+  const details='EmailJS response: '+(err?.status||'unknown status')+' — '+(err?.text||err?.message||'Unknown error')+' | Service: '+EMAILJS_SERVICE_ID+' | Template: '+EMAILJS_TEMPLATE_ID+' | Public key ending: '+EMAILJS_PUBLIC_KEY.slice(-4);
+   status.textContent=details+' | Please copy this message and send it to support. No guest details are included.';
+   status.style.whiteSpace='pre-wrap';
   btn.disabled=false;btn.textContent='Email My Color Snapshot';
  }
 }
@@ -890,6 +942,7 @@ function createColorSnapshotPDF(){
  document.getElementById('blushSwatches').innerHTML=beautySwatchHTML(b.blush);document.getElementById('blushText').textContent=b.blushText;
  document.getElementById('masSwatches').innerHTML=beautySwatchHTML(b.mas);document.getElementById('masText').textContent=b.masText;
  document.getElementById('pdfHair').textContent=c.hair;
+ recordCompletedGuest();
  document.getElementById('pdfSheet').style.display='block';
  const printable=[...document.querySelectorAll('#pdfSheet img')];
  Promise.all(printable.map(im=>im.decode?im.decode().catch(()=>{}):Promise.resolve())).then(()=>{
@@ -909,10 +962,43 @@ function createColorSnapshotPDF(){
  });
 }
 
+// Event-night client log. Stored locally on the consultation device, never in GitHub or email.
+const CS_CLIENT_KEY='colorSnapshotCompletedGuests_v1';
+function recordCompletedGuest(){
+ if(!guest || !guest.sessionId || !window.csResult || !window.csResult.primary) return;
+ try {
+   const records=JSON.parse(localStorage.getItem(CS_CLIENT_KEY)||'[]');
+   const row={sessionId:guest.sessionId, timestamp:new Date().toISOString(),
+     firstName:guest.firstName||'', email:guest.email||'', mobile:guest.mobile||'',
+     season:window.csResult.primary||'',
+     marketingConsent:!!guest.marketingConsent};
+   const index=records.findIndex(r=>r.sessionId===row.sessionId);
+   if(index>=0){ row.timestamp=records[index].timestamp; records[index]=row; }
+   else records.push(row);
+   localStorage.setItem(CS_CLIENT_KEY,JSON.stringify(records));
+ } catch(err){console.warn('Unable to save client record:',err);}
+}
+function downloadClientList(){
+ let records=[];
+ try{records=JSON.parse(localStorage.getItem(CS_CLIENT_KEY)||'[]');}catch(err){}
+ if(!records.length){alert('No completed consultations have been saved in this browser yet.');return;}
+ const columns=[['timestamp','Consultation date/time (UTC)'],['firstName','First name'],
+   ['email','Email'],['mobile','Phone'],['season','Season'],
+   ['marketingConsent','Marketing consent'],['sessionId','Session ID']];
+ const cell=v=>{let t=String(v==null?'':v);if(/^[=+@\-\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"';};
+ const rows=[columns.map(c=>cell(c[1])).join(',')];
+ for(const r of records){rows.push(columns.map(c=>cell(c[0]==='marketingConsent'?(r.marketingConsent?'Yes':'No'):r[c[0]])).join(','));}
+ const blob=new Blob(['\uFEFF'+rows.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='Color-Snapshot-Client-List-'+new Date().toISOString().slice(0,10)+'.csv';
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+
 function finishSession(){
  if(!window.csResult)return;
  const consent=document.getElementById('marketingConsent').checked;
  guest.marketingConsent=consent;
+ recordCompletedGuest();
  document.getElementById('doneName').textContent=(guest.firstName||'Your')+
    ', your '+window.csResult.primary+' Color Snapshot is complete.';
  const src=document.querySelector('.brand-panel .logo')?.src;
@@ -945,7 +1031,7 @@ function startNewGuest(){
 
 </script>
 
-
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script type="module">
 import {FaceLandmarker,FilesetResolver} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 let landmarker=null;
