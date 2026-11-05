@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Color Snapshot · 5G.3.2 · Email Connection Diagnostics</title>
+<title>Color Snapshot · Brevo Email Delivery</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
@@ -440,7 +440,7 @@ select{width:100%;border:0;border-bottom:1px solid #aaa096;background:transparen
       </div>
        <div class="field-note">Email delivery includes your season, palette colors, best neutrals, power colors, metals, and personalized styling guidance. No Acrobat upload required.</div>
       <div class="delivery-actions">
-        <button id="sendSnapshotBtn" type="button" onclick="this.textContent='Checking email…'; Promise.resolve().then(()=>sendColorSnapshotEmail()).catch(e=>{document.getElementById('deliveryStatus').textContent='Email setup error: '+(e.message||e);this.textContent='Email My Color Snapshot';console.error(e);})">Email My Color Snapshot</button>
+        <button id="sendSnapshotBtn" type="button" onclick="sendColorSnapshotEmail()">Email My Color Snapshot</button>
       </div>
       <label class="consent-row" style="text-transform:none;letter-spacing:0;font-weight:400">
         <input id="marketingConsent" type="checkbox">
@@ -775,48 +775,41 @@ function plainResultText(){
    'Color Snapshot is a personalized styling framework, not a scientific or medical classification.'
  ].join('\n');
 }
-const EMAILJS_PUBLIC_KEY='5sh2FkO6CUtLhSnv6';
-const EMAILJS_TEMPLATE_ID='template_x6g35r';
-const EMAILJS_SERVICE_ID='service_l9fjt9p';
-
-function emailColorSwatches(items){
- return items.map(item=>'<span style="display:inline-block;vertical-align:top;width:116px;margin:0 6px 12px 0;font:12px Arial,sans-serif;color:#0B4354"><span style="display:block;background:'+item[1]+';height:42px;border-radius:6px;border:1px solid #dedede"></span><span style="display:block;padding-top:5px">'+item[0]+'</span></span>').join('');
-}
 async function sendColorSnapshotEmail(){
  const status=document.getElementById('deliveryStatus');
  const btn=document.getElementById('sendSnapshotBtn');
- if(!window.csResult){status.textContent='No completed analysis is available. Please run the analysis and reveal the result again.';return;}
+ if(!window.csResult){status.textContent='Complete the color analysis first.';return;}
  const email=(guest.email||'').trim();
  if(!email){status.textContent='Guest email is missing. Return to Guest Details.';return;}
- if(!window.emailjs){status.textContent='Email service could not load. Check your connection.';return;}
  const r=window.csResult;
- if(!seasonContent[r.primary] || !wardrobeColors[r.primary] || !beautyContent[r.primary]){status.textContent='Result data is incomplete. Please restart this test consultation.';return;}
- const c=seasonContent[r.primary], wc=wardrobeColors[r.primary];
- const b=beautyContent[r.primary], g=guideContent[guest.styleGuide]||guideContent.neutral;
+ if(!seasonContent[r.primary]||!wardrobeColors[r.primary]||!beautyContent[r.primary]){status.textContent='Result data is incomplete. Please restart this consultation.';return;}
+ const c=seasonContent[r.primary],wc=wardrobeColors[r.primary],b=beautyContent[r.primary];
+ const g=guideContent[guest.styleGuide]||guideContent.neutral;
  const showBeauty=guest.styleGuide==='feminine'||guest.includeBeauty;
  const styleText=g.sections.map(x=>x[0]+': '+x[1]).join('\n');
  const makeupText=showBeauty?['Eyes: '+b.eyeText,'Lips: '+b.lipText,'Blush: '+b.blushText,'Mascara: '+b.masText].join('\n'):'Not requested';
- btn.disabled=true;btn.textContent='Sending…';status.textContent='Sending '+guest.firstName+'’s results…';
+ const payload={
+  first_name:guest.firstName||'there',to_email:email,
+  season:r.primary,season_signature:c.sig,confidence:r.confidence,
+  neutrals:wc.neutrals.map(x=>({name:x[0],hex:x[1]})),
+  power_colors:wc.power.map(x=>({name:x[0],hex:x[1]})),
+  metals:c.met,hair_direction:c.hair,style_guide:g.label,
+  style_recommendations:styleText,makeup_recommendations:makeupText,
+  neighboring_season:r.adjacent,
+  color_snapshot_text:plainResultText()
+ };
+ btn.disabled=true;btn.textContent='Sending…';status.textContent='Sending personalized results…';
  try{
-  await window.emailjs.send(EMAILJS_SERVICE_ID.trim(),EMAILJS_TEMPLATE_ID.trim(),{
-   first_name:guest.firstName||'there', guest_email:email, to_email:email,
-   season:r.primary, season_signature:c.sig, confidence:r.confidence,
-   best_neutrals:wc.neutrals.map(x=>x[0]).join(' · '),
-   power_colors:wc.power.map(x=>x[0]).join(' · '),
-   neutral_swatches_html:emailColorSwatches(wc.neutrals),
-   power_swatches_html:emailColorSwatches(wc.power),
-   metals:c.met, hair_direction:c.hair, style_guide:g.label,
-   style_recommendations:styleText, makeup_recommendations:makeupText,
-   neighboring_season:r.adjacent,
-   color_snapshot_text:plainResultText()+'\n\nPOWER COLORS\n'+wc.power.map(x=>x[0]).join(', ')+'\n\nSTYLE RECOMMENDATIONS\n'+styleText+'\n\nBEAUTY\n'+makeupText
-  },{publicKey:EMAILJS_PUBLIC_KEY});
-  status.textContent='Email service accepted the message for '+email+'. Check the guest inbox to confirm arrival.';
+  const response=await fetch('/.netlify/functions/send-color-snapshot',{
+   method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+  });
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.error||'Email delivery request failed ('+response.status+').');
+  status.textContent='Brevo accepted the email for '+email+'. Please check the guest inbox (and spam folder).';
   btn.textContent='Email submitted ✓';
  }catch(err){
-  console.error('EmailJS send failed',err);
-  const details='EmailJS response: '+(err?.status||'unknown status')+' — '+(err?.text||err?.message||'Unknown error')+' | Service: '+EMAILJS_SERVICE_ID+' | Template: '+EMAILJS_TEMPLATE_ID+' | Public key ending: '+EMAILJS_PUBLIC_KEY.slice(-4);
-   status.textContent=details+' | Please copy this message and send it to support. No guest details are included.';
-   status.style.whiteSpace='pre-wrap';
+  console.error('Brevo email request failed',err);
+  status.textContent='Email could not be sent: '+(err.message||'Unknown error')+'. You can still save the PDF.';
   btn.disabled=false;btn.textContent='Email My Color Snapshot';
  }
 }
@@ -952,7 +945,7 @@ function startNewGuest(){
 
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 <script type="module">
 import {FaceLandmarker,FilesetResolver} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
 let landmarker=null;
